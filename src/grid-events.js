@@ -61,7 +61,7 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  chart.addEventListener('scroll',()=>{if(gesture?.active)updateTarget(gesture);});
  chart.addEventListener('pointerdown',e=>{
   hideTip();
-  const cell=dayCell(e.target);if(e.button!==0||!cell||isBusy()||nodeDrag)return;selectCell(cell.dataset.nodeId,cell.dataset.day,false);const n=node(cell.dataset.nodeId),colors=colorsOn(n,cell.dataset.day);if(!colors.length&&!e.target.closest('.fill-handle'))return;
+  const cell=dayCell(e.target);if(e.button!==0||!cell||isBusy()||nodeDrag)return;selectCell(cell.dataset.nodeId,cell.dataset.day);const n=node(cell.dataset.nodeId),colors=colorsOn(n,cell.dataset.day);if(!colors.length&&!e.target.closest('.fill-handle'))return;
   gesture={id:n.id,day:cell.dataset.day,colors,mode:e.target.closest('.fill-handle')?'paint':'move',startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,pointerId:e.pointerId,active:false};
  });
  document.addEventListener('pointermove',e=>{
