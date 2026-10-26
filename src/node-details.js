@@ -4,7 +4,7 @@ import * as api from './api.js';
 const clean=html=>DOMPurify.sanitize(html,{ALLOWED_TAGS:['b','strong','i','em','u','s','p','div','br','ul','ol','li','blockquote','h2','h3','a','code','pre','table','thead','tbody','tr','td','th'],ALLOWED_ATTR:['href','title','aria-label'],ALLOW_DATA_ATTR:false});
 export function createNodeDetails({mutate,isBusy,status}){
  const $=id=>document.getElementById(id),notes=$('notes-dialog'),editor=$('rich-notes'),noteStatus=$('notes-status'),comments=$('comments-dialog');
- let noteId=null,expectedHtml='',savedEditorHtml='',timer=null,pending=null,loading=false,closing=false;
+ let noteId=null,expectedHtml='',savedEditorHtml='',timer=null,pending=null,loading=false,closing=false,clearing=false;
  let commentNode=null,posting=false,commentId=null,commentDraft='';
  const dirty=()=>clean(editor.innerHTML)!==savedEditorHtml;
  function setNoteStatus(message,error=false){noteStatus.textContent=message;noteStatus.classList.toggle('error',error);$('notes-retry').hidden=!error;$('notes-reload').hidden=!error;}
@@ -21,9 +21,17 @@ export function createNodeDetails({mutate,isBusy,status}){
  editor.addEventListener('input',schedule);
  editor.addEventListener('paste',e=>{e.preventDefault();const html=e.clipboardData.getData('text/html'),text=e.clipboardData.getData('text/plain');if(html)document.execCommand('insertHTML',false,clean(html));else document.execCommand('insertText',false,text);schedule();});
  $('notes-toolbar').addEventListener('pointerdown',e=>{if(e.target.closest('button'))e.preventDefault();});
- $('notes-toolbar').addEventListener('click',e=>{const button=e.target.closest('[data-command]');if(!button||loading||closing)return;editor.focus();document.execCommand(button.dataset.command,false,button.dataset.value||null);schedule();});
+ $('notes-toolbar').addEventListener('click',e=>{const button=e.target.closest('[data-command]');if(!button||loading||closing||clearing)return;editor.focus();document.execCommand(button.dataset.command,false,button.dataset.value||null);schedule();});
+ $('notes-clear').onclick=async()=>{
+  if(loading||closing||clearing||!noteId)return;clearing=true;$('notes-clear').disabled=true;$('notes-close').disabled=true;editor.contentEditable='false';clearTimeout(timer);
+  try{
+   // Flush pending edits first so undo can restore the entire note, including recent typing.
+   while(pending||dirty()){if(!await saveNow())return;}
+   editor.replaceChildren();fitNotes();await saveNow();
+  }finally{clearing=false;$('notes-clear').disabled=false;$('notes-close').disabled=false;editor.contentEditable='true';editor.focus();}
+ };
  $('notes-add-grid').onclick=()=>{
-  if(loading||closing)return;editor.focus();const selection=window.getSelection();
+  if(loading||closing||clearing)return;editor.focus();const selection=window.getSelection();
   if(!selection.anchorNode||!editor.contains(selection.anchorNode)){const range=document.createRange();range.selectNodeContents(editor);range.collapse(false);selection.removeAllRanges();selection.addRange(range);}
   const table=document.createElement('table'),body=document.createElement('tbody'),insertion=crypto.randomUUID();table.setAttribute('aria-label','Notes grid, 20 rows and 8 columns');table.dataset.gridInsertion=insertion;
   for(let row=0;row<20;row++){const tr=document.createElement('tr');for(let col=0;col<8;col++){const td=document.createElement('td');td.setAttribute('aria-label',`${String.fromCharCode(65+col)}${row+1}`);td.append(document.createElement('br'));tr.append(td);}body.append(tr);}table.append(body);
@@ -36,7 +44,7 @@ export function createNodeDetails({mutate,isBusy,status}){
   e.preventDefault();const range=document.createRange();range.selectNodeContents(next);range.collapse(true);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
  });
  async function closeNotes(){
-  if(closing||loading)return;closing=true;clearTimeout(timer);$('notes-close').disabled=true;editor.contentEditable='false';
+  if(closing||loading||clearing)return;closing=true;clearTimeout(timer);$('notes-close').disabled=true;editor.contentEditable='false';
   try{while(pending||dirty()){if(!await saveNow())return;}notes.close();noteId=null;}finally{closing=false;$('notes-close').disabled=false;editor.contentEditable='true';}
  }
  $('notes-close').onclick=closeNotes;$('notes-retry').onclick=async()=>{if(await saveNow())if(dirty())schedule();};

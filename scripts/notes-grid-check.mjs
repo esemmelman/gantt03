@@ -20,5 +20,11 @@ try{
  await page.locator('#rich-notes td[aria-label=H20]').fill('Updated last cell');await page.waitForFunction(()=>document.querySelector('#notes-status').textContent==='Saved automatically');saved=await api.getNode(node.id);assert.match(saved.notes_html,/Updated last cell/);
  await page.screenshot({path:process.env.TEMP+'/gantt03-notes-grid.png'});
  await page.locator('#notes-close').click();await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('#status').textContent==='Undone · Supabase');assert.match((await api.getNode(node.id)).notes_html,/>Last cell</);
- assert.deepEqual(errors,[]);console.log('Passed 20×8 editable Notes grid, preservation of text, Tab navigation, autosave/close flush, reload persistence, and undo.');
+ await openNotes();await page.locator('#rich-notes td[aria-label=H20]').fill('Recent typing before clear');
+ await page.getByRole('button',{name:'Clear note',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#notes-clear').disabled);
+ assert.equal(await page.locator('#rich-notes').textContent(),'');assert.equal(await page.locator('#rich-notes table').count(),0);saved=await api.getNode(node.id);assert.equal(saved.notes_html,'');assert.equal(saved.notes,'');assert.deepEqual(saved.comments,[]);
+ await page.locator('#notes-close').click();await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('#status').textContent==='Undone · Supabase');assert.match((await api.getNode(node.id)).notes_html,/Recent typing before clear/);
+ await openNotes();assert.equal(await page.locator('#rich-notes td').count(),160);await page.getByRole('button',{name:'Clear note',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('#notes-clear').disabled);await page.locator('#notes-close').click();
+ await page.reload();await page.getByRole('status').filter({hasText:'Saved'}).waitFor();await openNotes();assert.equal(await page.locator('#rich-notes').textContent(),'');assert.equal(await page.locator('#rich-notes table').count(),0);
+ assert.deepEqual(errors,[]);console.log('Passed editable Notes grid, autosave, Clear note removes all content, undo restores recent typing and grid, and reload persistence.');
 }finally{if(node)await api.remove(node.id);await browser.close();}
