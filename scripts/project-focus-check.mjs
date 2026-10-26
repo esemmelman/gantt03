@@ -13,8 +13,8 @@ const nodes=[
  {...base,id:ids[5],parent_id:null,title:'Project C',position:2,bars:[]}
 ];
 const row=index=>page.locator(`.node[data-id="${ids[index]}"]`);
-async function focused(){await row(0).waitFor({state:'hidden'});assert.deepEqual(await page.locator('.node[data-id]').evaluateAll(rows=>rows.map(n=>n.dataset.id)),ids.slice(2,5));assert.equal(await page.locator('#chart').evaluate(n=>n.scrollTop),0);}
-async function restore(){await page.locator('#expand-toggle').click();if(await page.locator('#expand-toggle').textContent()==='Expand All')await page.locator('#expand-toggle').click();assert.equal(await page.locator('.node[data-id]').count(),6);}
+async function focused(){await row(0).waitFor({state:'hidden'});assert.equal(await page.locator('#expand-toggle').textContent(),'Expand All');assert.deepEqual(await page.locator('.node[data-id]').evaluateAll(rows=>rows.map(n=>n.dataset.id)),ids.slice(2,5));assert.equal(await page.locator('#chart').evaluate(n=>n.scrollTop),0);}
+async function restore(){await page.locator('#expand-toggle').click();assert.equal(await page.locator('.node[data-id]').count(),6);assert.equal(await page.locator('#expand-toggle').textContent(),'Collapse All');}
 try{
  await page.clock.setFixedTime(new Date('2026-10-26T19:00:00Z'));await page.route('**/rest/v1/gantt03_nodes?*',route=>route.fulfill({json:nodes}));
  await page.goto('http://localhost:5173/gantt03/');await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
