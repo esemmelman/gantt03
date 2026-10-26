@@ -13,5 +13,5 @@
 .archive-entry{display:flex;gap:16px;align-items:center;justify-content:space-between;white-space:normal}.archive-entry button{padding:5px 12px;cursor:pointer;flex-shrink:0}
 .node-offset{border:0;background:transparent;font:inherit;font-weight:normal;font-variant-numeric:tabular-nums;padding:0 0 0 4px;line-height:21px;cursor:pointer}.node-offset:hover{text-decoration:underline}.node-offset:focus-visible{outline:1px solid currentColor}
 
-.toggle{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:16px;line-height:1;vertical-align:middle}
+.toggle{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:12px;font-weight:normal;color:#999;line-height:1;vertical-align:middle}
 #comments-dialog[open]{display:flex;flex-direction:column;height:min(820px,90dvh);overflow:hidden}#comments-dialog h2{flex-shrink:0}#comments-list{flex:1;min-height:0;max-height:none;overflow:auto}#comment-form{flex-shrink:0}#comment-body{height:clamp(80px,23dvh,240px);min-height:0;max-height:28dvh}#comments-error{margin:6px 0;max-height:8dvh;overflow:auto}#comment-form .actions{margin-top:10px;flex-wrap:wrap}
