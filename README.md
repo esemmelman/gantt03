@@ -28,9 +28,10 @@ npm run dev
 - **Clear note** removes all text, formatting, and grids from the open note and saves the empty note automatically. Close Notes and press Esc to undo the clear, including any recent typing. Comments are separate and remain intact.
 - **Comments** opens the node's comment history. Each Add comment submission appends a separate entry with a server timestamp displayed in the viewer's local timezone. Concurrent submissions are preserved, and retries do not duplicate a submission.
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
+- Clicking a project or task (including its date cells, day count, and context menu) temporarily shows only its top-level project and places that project at the top. **Expand All** or **Collapse All** restores every active project. Project order is not changed; reopening starts with all projects.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
-- The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges. Adjacent Back and Next buttons shift the start date by 30 days in either direction and position the grid at that date. The timeline keeps 90 earlier days loaded to its left, so the scrollbar still works backward after Back, Next, Today, or a manual start-date change.
+- On opening, today's date is positioned at the beginning of the visible date grid. The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges. Adjacent Back and Next buttons shift the start date by 30 days in either direction and position the grid at that date. The timeline keeps 90 earlier days loaded to its left, so the scrollbar still works backward after Back, Next, Today, or a manual start-date change.
 - Dates scroll only through the scrollbar, horizontal wheel/trackpad gestures, or Back/Next buttons. Hovering or dragging colors near the left/right edge does not scroll the timeline automatically.
 - Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Yellow, Green, Clear**. This changes that date only; other dates on the row are preserved. Existing Blue schedule ranges were converted to Yellow. Date columns are 52px wide.
@@ -58,6 +59,7 @@ node scripts/archive-check.mjs
 node scripts/edge-scroll-check.mjs
 node scripts/date-history-check.mjs
 node scripts/day-count-jump-check.mjs
+node scripts/project-focus-check.mjs
 ```
 
 The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. `supabase/archive-yellow.sql` adds archive state and converts Blue schedules to Yellow. All have already been applied to the connected project and should not be rerun there.
