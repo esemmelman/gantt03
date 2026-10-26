@@ -13,7 +13,7 @@ try{
  const initialRootCount=(await api.load()).filter(n=>!n.parent_id).length;
  assert.equal(await page.locator('#expand-toggle').count(),1);
  await page.locator('.node[data-id]').filter({hasText:'Brotherhood'}).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Notes','Comments','Archive','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Add sibling','Edit','Notes','Comments','Archive','Delete']);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Add root',exact:true}).click();
  await page.getByRole('textbox',{name:'New node name'}).fill(`QA ${suffix}`);
@@ -35,7 +35,7 @@ try{
  const second=(await api.load()).find(n=>n.title===`QA level 2 ${suffix}`);
  for(const anchor of [target,second,root]){
   await page.locator(`.node[data-id="${anchor.id}"]`).click({button:'right'});
-  await page.getByRole('menuitem',{name:'Sibling',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Add sibling',exact:true}).click();
   assert.equal(await page.locator('.draft-row').evaluate(row=>row.previousElementSibling.querySelector('.node').dataset.id),target.id);
   const title=`QA sibling ${anchor.id} ${suffix}`;
   await page.getByRole('textbox',{name:'New node name'}).fill(title);
@@ -50,7 +50,7 @@ try{
  await page.locator('.cell').first().hover();
  assert.equal(await page.locator('#day-tooltip').evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)');
  await page.locator(`.node[data-id="${target.id}"]`).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Notes','Comments','Archive','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add sibling','Edit','Notes','Comments','Archive','Delete']);
  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
  for(const bar of [
   {start_date:'2026-10-27',end_date:'2026-10-29',color:'#ff0000'},

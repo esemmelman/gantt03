@@ -13,7 +13,7 @@ npm run dev
 
 ## Use
 
-- Right-click a node (or Shift+F10): **Add parent, Add child, Sibling, Edit, Notes, Comments, Archive, Delete**. Level four has **Sibling, Edit, Notes, Comments, Archive, Delete**.
+- Right-click a node (or Shift+F10): **Add parent, Add child, Add sibling, Edit, Notes, Comments, Archive, Delete**. Level four has **Add sibling, Edit, Notes, Comments, Archive, Delete**.
 - **Sibling** inserts a row after the selected node's branch, with the same parent and indentation. It also works for root nodes and level-four nodes.
 - Add parent wraps a node and its branch. A wrapper that would exceed four levels is rejected atomically. The database also rejects cycles and fifth-level inserts.
 - Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.

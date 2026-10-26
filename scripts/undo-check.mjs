@@ -23,7 +23,7 @@ try{
  await color(root,'2026-10-25','Red');await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-25'),[]);
  await color(root,'2026-10-25','Yellow');await drag(await corner(root,'2026-10-25'),cell(root,'2026-10-28'));assert.deepEqual(colorsOn(await data(root),'2026-10-27'),['#ffff00']);await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-27'),[]);assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#ffff00']);
  await drag(cell(root,'2026-10-25'),cell(other,'2026-10-29'));await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#ffff00']);assert.deepEqual(colorsOn(await data(other),'2026-10-29'),[]);
- const sibling=await add('Sibling',child,`Undo QA sibling ${suffix}`);await undo();assert.equal(await data(sibling),undefined);
+ const sibling=await add('Add sibling',child,`Undo QA sibling ${suffix}`);await undo();assert.equal(await data(sibling),undefined);
  const wrapper=await add('Add parent',child,`Undo QA wrapper ${suffix}`);await undo();assert.equal(await data(wrapper),undefined);assert.equal((await data(child)).parent_id,root.id);assert.equal((await data(leaf)).parent_id,child.id);
  await showAll();await name(child).dragTo(name(other));await saved();assert.equal((await data(child)).parent_id,other.id);await undo();assert.equal((await data(child)).parent_id,root.id);
  await name(child).click();await page.locator('[name=title]').fill(`Edited ${suffix}`);await page.getByRole('button',{name:'Save',exact:true}).click();await page.locator('#editor').waitFor({state:'hidden'});await undo();assert.equal((await data(child)).title,child.title);
