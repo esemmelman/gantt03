@@ -18,6 +18,7 @@ npm run dev
 - Add parent wraps a node and its branch. A wrapper that would exceed four levels is rejected atomically. The database also rejects cycles and fifth-level inserts.
 - Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
 - Click a node name to edit its name, colored date ranges, text color, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
+- To change a node's level, click its name and choose **Level** and **Parent**, then Save. Level 1 makes it a root. The entire branch moves together; unavailable levels and invalid parents are excluded so no branch exceeds four levels or forms a cycle. Esc can undo a saved move.
 - A right-aligned integer in the node cell shows days until its next scheduled date. If all dates are past, it shows days since the most recent date as a negative integer. Active-today ranges and unscheduled nodes show no count. Counts update when the local date changes.
 - **Notes** opens a rich text box with bold, italic, underline, headings, and lists. Notes save automatically after a short pause; closing also saves the latest keystrokes. Existing plain notes are preserved. Formatting is sanitized for display. Save failures stay visible with retry/reload controls.
 - The single **Align** button cycles **Left → Center → Right → Left** for the current paragraph or selected text, and saves the alignment automatically.
@@ -49,6 +50,7 @@ node scripts/undo-check.mjs
 node scripts/notes-comments-check.mjs
 node scripts/notes-grid-check.mjs
 node scripts/notes-alignment-check.mjs
+node scripts/node-level-check.mjs
 ```
 
 The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. All have already been applied to the connected project and should not be rerun there.

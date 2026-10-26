@@ -1,7 +1,7 @@
 import './style.css';
 import * as api from './api.js';
 import {children,level,height,visible,actions,iso,addDays} from './model.js';
-import {dayOffset,cellTooltip,nodeDayOffset,rangesOf as barRanges,colorsOn as barColors,colorFill} from './interactions.js';
+import {nodeDrop,dayOffset,cellTooltip,nodeDayOffset,rangesOf as barRanges,colorsOn as barColors,colorFill} from './interactions.js';
 import {installGridInteractions} from './grid-events.js';
 import {actionDiff} from './history.js';
 import {createNodeDetails} from './node-details.js';
@@ -58,9 +58,25 @@ function addRange(bar={}){
  const remove=el('button','×');remove.type='button';remove.setAttribute('aria-label','Remove color range');remove.onclick=()=>row.remove();row.append(remove);$('#bar-ranges').append(row);return row;
 }
 $('#add-range').onclick=()=>addRange({start_date:iso(new Date()),end_date:iso(new Date())});
+function moveChoices(node){
+ const choices=new Map([[1,[null]],[2,[]],[3,[]],[4,[]]]);
+ for(const parent of nodes){try{nodeDrop(nodes,node,parent,'inside');choices.get(level(nodes,parent)+1)?.push(parent);}catch{}}
+ return choices;
+}
+function fillParents(){
+ const depth=Number($('#node-level').value),choices=moveChoices(editing.node).get(depth)||[],parentSelect=$('#node-parent');parentSelect.replaceChildren();
+ for(const parent of choices){const option=el('option');option.value=parent?.id||'';
+  if(parent){const path=[];let current=parent;while(current){path.unshift(current.title);current=nodes.find(n=>n.id===current.parent_id);}option.textContent=path.join(' › ');}else option.textContent='No parent (root)';
+  parentSelect.append(option);
+ }
+ if(choices.some(p=>(p?.id||'')===(editing.node.parent_id||'')))parentSelect.value=editing.node.parent_id||'';
+ $('#node-level-hint').textContent=`This node will be level ${depth}. Children move with it; all branches stay within four levels.`;
+}
+$('#node-level').onchange=fillParents;
 function openEditor(action,node,day=null){
  if(busy)return;editing={action,node};const form=$('#form');form.reset();$('#form-error').textContent='';$('#dialog-title').textContent='Edit node';$('#dialog-context').textContent=`${node.title} · Level ${level(nodes,node)}`;
  for(const name of ['title','text_color','links'])form.elements.namedItem(name).value=node[name]||'';
+ const choices=moveChoices(node);$('#node-level').replaceChildren();for(let depth=1;depth<=4;depth++){const option=el('option',`Level ${depth}${choices.get(depth).length?'':' (unavailable)'}`);option.value=String(depth);option.disabled=!choices.get(depth).length;$('#node-level').append(option);}$('#node-level').value=String(level(nodes,node));fillParents();
  $('#bar-ranges').replaceChildren();for(const bar of barRanges(node))addRange(bar);
  if(day&&!barColors(node,day).length)addRange({start_date:day,end_date:day});
  $('#editor').showModal();form.elements.title.focus();
@@ -72,7 +88,7 @@ $('#form').onsubmit=async e=>{
  data.bars=[...document.querySelectorAll('.bar-range')].map(row=>Object.fromEntries([...row.querySelectorAll('input')].map(input=>[input.dataset.field,input.value])));
  if(data.bars.some(b=>!b.start_date||!b.end_date||b.end_date<b.start_date)){$('#form-error').textContent='Each color range needs an end date on or after its start date.';return;}
  data.start_date=data.bars[0]?.start_date||null;data.end_date=data.bars[0]?.end_date||null;data.color=data.bars[0]?.color||'#ef8080';
- $('#save').disabled=true;$('#cancel').disabled=true;try{await mutate(()=>api.update(editing.node.id,data));$('#editor').close();}catch(e){$('#form-error').textContent=e.message;}finally{$('#save').disabled=false;$('#cancel').disabled=false;}
+ $('#save').disabled=true;$('#cancel').disabled=true;try{const parentId=data.parent_id||null;if(parentId!==editing.node.parent_id){const parent=nodes.find(n=>n.id===parentId);if(parentId&&!parent)throw Error('The selected parent no longer exists.');Object.assign(data,nodeDrop(nodes,editing.node,parent||null,'inside'));}else delete data.parent_id;await mutate(async()=>{await api.update(editing.node.id,data);if('parent_id' in data){let parent=nodes.find(n=>n.id===data.parent_id);while(parent){collapsed.delete(parent.id);parent=nodes.find(n=>n.id===parent.parent_id);}remember();}selected=editing.node.id;});$('#editor').close();}catch(e){$('#form-error').textContent=e.message;}finally{$('#save').disabled=false;$('#cancel').disabled=false;}
 };
 function deleteNode(node){const count=(function descendants(id){return children(nodes,id).reduce((s,n)=>s+1+descendants(n.id),0);})(node.id);showPanel('Delete node',content=>{content.append(el('p',`Delete “${node.title}”${count?` and its ${count} descendant${count===1?'':'s'}`:''}?`));const button=el('button','Delete');button.onclick=async()=>{button.disabled=true;try{await mutate(()=>api.remove(node.id));if(selected===node.id)selected=null;$('#panel').close();}catch(e){content.append(el('p',e.message));button.disabled=false;}};content.append(button);});}
 function showPanel(title,fill){$('#panel-title').textContent=title;$('#panel-content').replaceChildren();fill($('#panel-content'));$('#panel').showModal();}
