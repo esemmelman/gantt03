@@ -24,7 +24,8 @@ npm run dev
 - The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges.
 - Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Blue, Green, Clear**. This changes that date only; other dates on the row are preserved.
-- Drag the body of a colored cell to move its colors to another date/row and clear the source. Select a cell to show a blue outline and a lower-right blue circle. Hover the circle for a cross cursor, then drag it to paint the rectangle between source and destination, including intermediate dates and visible rows. A striped source carries all its colors. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
+- Drag the body of a colored cell to move its colors to another date/row and clear the source. Hover near a cell’s lower-right corner to show a blue circle. Hover the circle for a cross cursor, then drag it to paint. The circle disappears on mouse release. Painting fills the rectangle between source and destination, including intermediate dates and visible rows. A striped source carries all its colors. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
+- Press **Esc** to undo the most recent saved change in this browser session, including colors, node moves, edits, additions and deletions. Up to 30 changes are kept until reload. During a drag, Esc cancels the unfinished drag; in a dialog it closes the dialog. Undo rejects conflicting newer shared edits.
 - Drag node names directly to move the whole branch; no drag handle is displayed or required. Drop at a name's top/bottom edge to reorder, or in its middle to nest. Drop on **Drop node at root** to make it a root. Cycles and moves exceeding four levels are rejected.
 
 The app intentionally has **no login and no row-level access restrictions**, as requested. Anyone with the app or its publishable key can read and change this app's data. Only the public browser key is included; no Supabase secret or service-role key is used. Existing tables are untouched.
@@ -37,9 +38,10 @@ npm run build
 # With the dev server running and Microsoft Edge installed:
 node scripts/browser-check.mjs
 node scripts/drag-check.mjs
+node scripts/undo-check.mjs
 ```
 
-The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. All have already been applied to the connected project and should not be rerun there.
+The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. All have already been applied to the connected project and should not be rerun there.
 
 ## Hosting
 

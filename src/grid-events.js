@@ -1,12 +1,24 @@
 import {iso} from './model.js';
 import {cellTooltip,colorsOn,colorFill,rangesOf,paintRange,nodeDrop} from './interactions.js';
 
-export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,moveNode,selectCell,status}){
+export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,moveNode,selectCell,status,undo}){
  const chart=document.querySelector('#chart'),menu=document.querySelector('#menu'),tip=document.querySelector('#day-tooltip'),rootDrop=document.querySelector('#root-drop');
  let gesture=null,nodeDrag=null,suppressClick=false,scrollFrame=0;
  const node=id=>getNodes().find(n=>n.id===id);
  const dayCell=target=>target?.closest?.('.cell[data-day]');
  const hideTip=()=>{tip.hidden=true;};
+ let cornerKey=null,dismissedCorner=null,releasedAt=null;
+ function hideCorner(dismiss=false){if(dismiss)dismissedCorner=cornerKey;cornerKey=null;chart.querySelectorAll('.corner-hot').forEach(cell=>cell.classList.remove('corner-hot'));}
+ function hoverCorner(e){
+  if(releasedAt){if(Math.hypot(e.clientX-releasedAt.x,e.clientY-releasedAt.y)<3)return;releasedAt=null;}
+  if(gesture?.active||nodeDrag)return;const cell=dayCell(e.target);if(!cell){hideCorner();dismissedCorner=null;return;}
+  const r=cell.getBoundingClientRect(),key=cell.dataset.nodeId+':'+cell.dataset.day;
+  const near=e.target.closest('.fill-handle')||(e.clientX>=r.right-12&&e.clientX<=r.right+5&&e.clientY>=r.bottom-12&&e.clientY<=r.bottom+5);
+  if(!near){hideCorner();dismissedCorner=null;return;}if(dismissedCorner===key)return;
+  if(cornerKey!==key){hideCorner();cornerKey=key;cell.classList.add('corner-hot');}
+ }
+ chart.addEventListener('pointermove',hoverCorner);chart.addEventListener('pointerover',hoverCorner);chart.addEventListener('pointerleave',()=>{if(!gesture?.active)hideCorner();dismissedCorner=null;});
+ chart.addEventListener('scroll',()=>{if(!gesture?.active)hideCorner();});
  function tooltip(e){const cell=e.target.closest?.('[data-day]');if(!cell||e.target.closest('.fill-handle')||gesture?.active||nodeDrag){hideTip();return;}
   const value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));tip.textContent=value;tip.hidden=false;
   const bounds=tip.getBoundingClientRect();tip.style.left=`${Math.max(4,Math.min(innerWidth-bounds.width-4,e.clientX+12))}px`;tip.style.top=`${Math.max(4,Math.min(innerHeight-bounds.height-4,e.clientY+15))}px`;
@@ -65,12 +77,20 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  },{passive:false});
  chart.addEventListener('click',e=>{if(suppressClick){e.preventDefault();e.stopImmediatePropagation();suppressClick=false;}},true);
  function finish(e,cancel=false){
+  releasedAt=Number.isFinite(e.clientX)?{x:e.clientX,y:e.clientY}:gesture?{x:gesture.x,y:gesture.y}:null;
+  hideCorner(true);
   const g=gesture;if(!g||e.pointerId!==g.pointerId)return;gesture=null;cancelAnimationFrame(scrollFrame);
   if(!g.active)return;if(chart.hasPointerCapture(e.pointerId))chart.releasePointerCapture(e.pointerId);endPreview();suppressClick=true;setTimeout(()=>{suppressClick=false;},250);
   if(cancel||!g.target){preview({target:null});return;}const changes=edits(g);preview({target:null});persist(changes);
  }
  document.addEventListener('pointerup',e=>finish(e));document.addEventListener('pointercancel',e=>finish(e,true));
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&gesture){finish({pointerId:gesture.pointerId},true);}});
+ document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(gesture){e.preventDefault();finish({pointerId:gesture.pointerId},true);return;}
+  if(nodeDrag){e.preventDefault();nodeDrag=null;resetDrop();hideCorner(true);return;}
+  if(e.defaultPrevented||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,[contenteditable=true]'))return;
+  e.preventDefault();hideCorner(true);hideTip();undo();
+ });
  window.addEventListener('blur',()=>{if(gesture)finish({pointerId:gesture.pointerId},true);});
 
  // Native node dragging carries the entire branch with it.

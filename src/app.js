@@ -3,13 +3,24 @@ import * as api from './api.js';
 import {children,level,height,visible,actions,iso,addDays} from './model.js';
 import {dayOffset,cellTooltip,rangesOf as barRanges,colorsOn as barColors,colorFill} from './interactions.js';
 import {installGridInteractions} from './grid-events.js';
+import {actionDiff} from './history.js';
 const $=s=>document.querySelector(s), el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 let nodes=[],selected=null,collapsed=new Set(JSON.parse(localStorage.getItem('gantt03-collapsed')||'[]')),busy=false,editing=null,draft=null,activeCell=null;
+const undoStack=[];let undoRequested=false,undoing=false;
 const start=$('#range-start');start.value=addDays(iso(new Date()),-1);
 function status(message,error=false){$('#status').textContent=message;$('#status').classList.toggle('error',error);}
 function remember(){localStorage.setItem('gantt03-collapsed',JSON.stringify([...collapsed]));}
 async function refresh(){try{nodes=await api.load();render();status('Saved · Supabase');}catch(e){status(e.message,true);}}
-async function mutate(fn){if(busy)return;busy=true;status('Saving…');try{await fn();await refresh();}catch(e){status(e.message,true);throw e;}finally{busy=false;}}
+async function mutate(fn){
+ if(busy)return;busy=true;status('Saving…');
+ try{const before=await api.snapshot();api.beginRecording();await fn();const scope=api.endRecording(),after=await api.snapshot(),action=actionDiff(before,after,scope);if(action.changes.length||action.settings_before!==null){undoStack.push(action);if(undoStack.length>30)undoStack.shift();}nodes=after.nodes;render();status('Saved · Supabase');}
+ catch(e){api.endRecording();status(e.message,true);throw e;}
+ finally{busy=false;if(undoRequested){undoRequested=false;await undoLast();}}
+}
+async function undoLast(){
+ if(busy){if(!undoing)undoRequested=true;return;}undoRequested=false;const action=undoStack.at(-1);if(!action){status('Nothing to undo');return;}busy=true;undoing=true;status('Undoing…');
+ try{await api.undoAction(action);undoStack.pop();await refresh();status('Undone · Supabase');}catch(e){status(e.message,true);}finally{busy=false;undoing=false;}
+}
 function dateCount(){return $('#days').value==='through-aug-2027'?Math.max(1,dayOffset('2027-08-31',start.value)+1):Number($('#days').value);}
 function dates(){return Array.from({length:dateCount()},(_,i)=>addDays(start.value,i));}
 function select(id){selected=id;document.querySelectorAll('.node[data-id]').forEach(n=>n.classList.toggle('selected',n.dataset.id===id));}
@@ -21,7 +32,7 @@ function render(){const parents=nodes.filter(n=>children(nodes,n.id).length),any
  const detail=el('button','▤');detail.className='node-detail';detail.setAttribute('aria-label',`Details for ${node.title}`);detail.onclick=e=>{e.stopPropagation();select(node.id);openEditor('Edit',node);};td.append(detail,document.createTextNode(node.title));td.onclick=()=>select(node.id);td.ondblclick=()=>openEditor('Edit',node);td.oncontextmenu=e=>{e.preventDefault();select(node.id);openMenu(node,e.clientX,e.clientY);};td.onkeydown=e=>{if(e.target!==td)return;if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){e.preventDefault();const r=td.getBoundingClientRect();select(node.id);openMenu(node,r.left+30,r.bottom);}if(e.key==='Enter'){select(node.id);openEditor('Edit',node);}};tr.append(td);
  for(const day of days){const cell=el('td');const d=new Date(day+'T12:00:00');cell.className='cell'+(d.getDay()%6===0?' weekend-cell':'');cell.dataset.day=day;cell.dataset.nodeId=node.id;cell.classList.toggle('cell-selected',activeCell?.id===node.id&&activeCell?.day===day);cell.setAttribute('aria-selected',String(activeCell?.id===node.id&&activeCell?.day===day));cell.tabIndex=0;cell.setAttribute('aria-label',`${node.title}, ${day}`);const colors=barColors(node,day);if(colors.length){cell.classList.add('bar');cell.style.setProperty('--bar',colorFill(colors));}cell.setAttribute('aria-describedby','day-tooltip');const fill=el('button');fill.className='fill-handle';fill.type='button';fill.setAttribute('aria-label','Paint from this cell');fill.onclick=e=>{e.stopPropagation();};cell.append(fill);cell.onclick=()=>selectCell(node.id,day);cell.ondblclick=e=>{if(!e.target.closest('.fill-handle')){selectCell(node.id,day);openEditor('Edit',node,day);}};tr.append(cell);}if(draft?.action==='Add parent'&&draft.node.id===node.id)body.append(draftRow(days.length,node.depth));body.append(tr);if(draft?.action==='Add child'&&draft.node.id===node.id)body.append(draftRow(days.length,node.depth+1));if(node.id===siblingAnchor)body.append(draftRow(days.length,level(nodes,draft.node)));}if(draft?.action==='Add root')body.append(draftRow(days.length,1));table.append(body);$('#chart').replaceChildren(table);if(!nodes.length&&!draft){const empty=el('p','No nodes yet. Use Add root to begin.');empty.className='empty';$('#chart').append(empty);}}
 function openMenu(node,x,y){const menu=$('#menu');menu.replaceChildren();for(const action of actions(nodes,node)){const button=el('button',action);button.setAttribute('role','menuitem');button.onclick=()=>{menu.hidden=true;if(action==='Delete')deleteNode(node);else if(action==='Edit')openEditor(action,node);else startDraft(action,node);};menu.append(button);}menu.hidden=false;const r=menu.getBoundingClientRect();menu.style.left=`${Math.max(0,Math.min(x,innerWidth-r.width-8))}px`;menu.style.top=`${Math.max(0,Math.min(y,innerHeight-r.height-8))}px`;menu.firstChild.focus();}
-document.addEventListener('pointerdown',e=>{if(!$('#menu').contains(e.target))$('#menu').hidden=true;});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#menu').hidden=true;const m=$('#menu');if(!m.hidden&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const a=[...m.children],i=a.indexOf(document.activeElement);a[(i+(e.key==='ArrowDown'?1:a.length-1))%a.length].focus();}});
+document.addEventListener('pointerdown',e=>{if(!$('#menu').contains(e.target))$('#menu').hidden=true;});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#menu').hidden){e.preventDefault();$('#menu').hidden=true;}const m=$('#menu');if(!m.hidden&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const a=[...m.children],i=a.indexOf(document.activeElement);a[(i+(e.key==='ArrowDown'?1:a.length-1))%a.length].focus();}});
 function startDraft(action,node=null){
  if(busy)return;if(draft){status('Finish or cancel the new row first.',true);$('#draft-name')?.focus();return;}
  if(action==='Add parent'&&level(nodes,node)+height(nodes,node)>4){showPanel('Four-level limit',c=>c.append(el('p','Adding a parent would move a descendant beyond level four.')));return;}
@@ -77,5 +88,5 @@ $('#expand-toggle').onclick=()=>{const parents=nodes.filter(n=>children(nodes,n.
 $('#add').onclick=()=>startDraft('Add root');$('#refresh').onclick=refresh;start.onchange=()=>{if(start.value)render();};$('#days').onchange=render;$('#today').onclick=()=>{start.value=addDays(iso(new Date()),-1);render();$('#chart').scrollLeft=0;};$('#previous').onclick=()=>{start.value=addDays(start.value,-30);render();};$('#next').onclick=()=>{start.value=addDays(start.value,30);render();};
 installGridInteractions({getNodes:()=>nodes,getVisible:()=>visible(nodes,collapsed),isBusy:()=>busy,
  saveColors:changes=>mutate(()=>api.updateColors(changes)),
- moveNode:(id,values)=>mutate(async()=>{await api.update(id,values);selected=id;collapsed.delete(values.parent_id);remember();}),selectCell,status});
+ moveNode:(id,values)=>mutate(async()=>{await api.update(id,values);selected=id;collapsed.delete(values.parent_id);remember();}),selectCell,status,undo:undoLast});
 await refresh();
