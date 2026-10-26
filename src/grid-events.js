@@ -1,5 +1,5 @@
 import {iso} from './model.js';
-import {dayOffset,colorsOn,colorFill,rangesOf,paintRange,nodeDrop} from './interactions.js';
+import {cellTooltip,colorsOn,colorFill,rangesOf,paintRange,nodeDrop} from './interactions.js';
 
 export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,moveNode,select,status}){
  const chart=document.querySelector('#chart'),menu=document.querySelector('#menu'),tip=document.querySelector('#day-tooltip'),rootDrop=document.querySelector('#root-drop');
@@ -8,8 +8,8 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  const dayCell=target=>target?.closest?.('.cell[data-day]');
  const hideTip=()=>{tip.hidden=true;};
  function tooltip(e){const cell=e.target.closest?.('[data-day]');if(!cell||gesture?.active||nodeDrag){hideTip();return;}
-  const value=String(dayOffset(cell.dataset.day,iso(new Date())));cell.title=value;tip.textContent=value;tip.hidden=false;
-  tip.style.left=`${Math.max(4,Math.min(innerWidth-48,e.clientX+12))}px`;tip.style.top=`${Math.max(4,Math.min(innerHeight-32,e.clientY+15))}px`;
+  const value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));cell.title=value;tip.textContent=value;tip.hidden=false;
+  const bounds=tip.getBoundingClientRect();tip.style.left=`${Math.max(4,Math.min(innerWidth-bounds.width-4,e.clientX+12))}px`;tip.style.top=`${Math.max(4,Math.min(innerHeight-bounds.height-4,e.clientY+15))}px`;
  }
  chart.addEventListener('pointermove',tooltip);chart.addEventListener('pointerover',tooltip);chart.addEventListener('pointerleave',hideTip);chart.addEventListener('scroll',hideTip);
  function showMenu(cell,e){
@@ -55,7 +55,7 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  chart.addEventListener('pointerdown',e=>{
   hideTip();
   const cell=dayCell(e.target);if(e.button!==0||!cell||isBusy()||nodeDrag)return;const n=node(cell.dataset.nodeId),colors=colorsOn(n,cell.dataset.day);if(!colors.length)return;
-  gesture={id:n.id,day:cell.dataset.day,colors,mode:e.shiftKey?'move':document.querySelector('#color-drag-mode').value,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,pointerId:e.pointerId,active:false};
+  gesture={id:n.id,day:cell.dataset.day,colors,mode:e.altKey?'paint':e.shiftKey?'move':document.querySelector('#color-drag-mode').value,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,pointerId:e.pointerId,active:false};
  });
  document.addEventListener('pointermove',e=>{
   const g=gesture;if(!g||e.pointerId!==g.pointerId)return;g.x=e.clientX;g.y=e.clientY;

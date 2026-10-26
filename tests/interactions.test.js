@@ -1,8 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {dayOffset,paintRange,colorsOn,nodeDrop} from '../src/interactions.js';
+import {dayOffset,cellTooltip,paintRange,colorsOn,nodeDrop} from '../src/interactions.js';
 const red='#ff0000',blue='#0000ff';
 const bar=(start,end,color=red)=>({start_date:start,end_date:end,color});
+test('cell tooltips include the row name, requested date format, and signed integer offset',()=>{
+ assert.equal(cellTooltip('2026-10-25','Project name','2026-10-25'),'Project name\nOct. 25 Sun\n0');
+ assert.equal(cellTooltip('2026-10-24','Task name','2026-10-25'),'Task name\nOct. 24 Sat\n-1');
+ assert.equal(cellTooltip('2027-01-01',undefined,'2026-12-31'),'Jan. 1 Fri\n1');
+});
 test('day offsets use calendar days across DST, leap days and year changes',()=>{
  assert.equal(dayOffset('2026-11-02','2026-10-31'),2);
  assert.equal(dayOffset('2026-03-09','2026-03-07'),2);

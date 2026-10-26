@@ -18,10 +18,17 @@ async function nativeDrop(source,target,fraction=.5){const box=await target.boun
 try{
  const a=await create('A',null,-1000),b=await create('B',null,-999),child=await create('child',a.id),grandchild=await create('grandchild',child.id),fourth=await create('fourth',grandchild.id);
  await page.goto('http://localhost:5173/gantt03/');await saved();await reload();
- await cell(a,'2026-10-24').hover();assert.match(await page.locator('#day-tooltip').textContent(),/^-?\d+$/);
- const offsets=await page.evaluate(()=>{const cells=[...document.querySelectorAll('thead tr:last-child [data-day]')];return cells.slice(0,3).map(c=>Number(c.title));});assert.equal(offsets[1]-offsets[0],1);assert.equal(offsets[2]-offsets[1],1);
+ await cell(a,'2026-10-24').hover();
+ const tooltip=(await page.locator('#day-tooltip').textContent()).split('\n');assert.equal(tooltip[0],a.title);assert.equal(tooltip[1],'Oct. 24 Sat');assert.match(tooltip[2],/^-?\d+$/);
+ const offsets=await page.evaluate(()=>{const cells=[...document.querySelectorAll('thead tr:last-child [data-day]')];return cells.slice(0,3).map(c=>Number(c.title.split('\n').at(-1)));});assert.equal(offsets[1]-offsets[0],1);assert.equal(offsets[2]-offsets[1],1);
+ assert.equal(await page.locator('#color-drag-mode').inputValue(),'move');
  for(const [day,color,hex] of [['2026-10-24','Red','#ff0000'],['2026-10-25','Blue','#0000ff'],['2026-10-26','Green','#008000']]){await menu(a,day,color);assert.deepEqual(colorsOn(await data(a),day),[hex]);}
  await menu(a,'2026-10-25','Clear');assert.deepEqual(colorsOn(await data(a),'2026-10-25'),[]);assert.deepEqual(colorsOn(await data(a),'2026-10-24'),['#ff0000']);
+ // A normal unmodified drag moves the color directly, without a handle or mode change.
+ await drag(cell(a,'2026-10-24'),cell(b,'2026-10-29'));
+ assert.deepEqual(colorsOn(await data(a),'2026-10-24'),[]);assert.deepEqual(colorsOn(await data(b),'2026-10-29'),['#ff0000']);
+ await drag(cell(b,'2026-10-29'),cell(a,'2026-10-24'));
+ await page.locator('#color-drag-mode').selectOption('paint');
  // Paint includes intermediate cells, and clearing the middle splits the run.
  await drag(cell(a,'2026-10-24'),cell(a,'2026-10-28'));
  for(const day of ['2026-10-24','2026-10-25','2026-10-26','2026-10-27','2026-10-28'])assert.deepEqual(colorsOn(await data(a),day),['#ff0000']);
@@ -55,7 +62,7 @@ try{
  await reload();assert.deepEqual(colorsOn(await data(b),'2026-10-30'),['#ff0000']);
  assert.equal(await cell(b,'2026-10-30').evaluate(c=>getComputedStyle(c).backgroundColor),'rgb(255, 0, 0)');
  assert.deepEqual(errors,[]);
- console.log('Passed hover offsets; Red/Blue/Green/Clear; paint rectangle; Shift and Move drags; atomic conflict rollback; reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
+ console.log('Passed name/date/offset tooltips; direct color drag and drop; Red/Blue/Green/Clear; paint rectangle; atomic conflict rollback; direct node reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
 }finally{
  for(const id of cleanup)await api.remove(id);
  await browser.close();

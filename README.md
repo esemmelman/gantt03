@@ -20,10 +20,10 @@ npm run dev
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
-- Hover any date cell or date header to see only its integer offset from today (negative for past dates, 0 today).
+- Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Blue, Green, Clear**. This changes that date only; other dates on the row are preserved.
-- Drag a colored cell in **Paint** mode to fill the rectangle between its source and destination, including intermediate dates and visible rows. A striped source paints all its colors. Choose **Move**, or hold Shift before dragging, to move one cell's colors to another date/row and clear the source. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
-- Drag node names to move the whole branch. Drop at a name's top/bottom edge to reorder, or in its middle to nest. Drop on **Drop node at root** to make it a root. Cycles and moves exceeding four levels are rejected.
+- Drag a colored cell directly to move its colors to another date/row and clear the source. **Move** is the default. Choose **Paint**, or hold Alt before dragging, to fill the rectangle between source and destination, including intermediate dates and visible rows. A striped source carries all its colors. Shift forces Move. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
+- Drag node names directly to move the whole branch; no drag handle is displayed or required. Drop at a name's top/bottom edge to reorder, or in its middle to nest. Drop on **Drop node at root** to make it a root. Cycles and moves exceeding four levels are rejected.
 
 The app intentionally has **no login and no row-level access restrictions**, as requested. Anyone with the app or its publishable key can read and change this app's data. Only the public browser key is included; no Supabase secret or service-role key is used. Existing tables are untouched.
 

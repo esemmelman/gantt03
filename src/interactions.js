@@ -2,6 +2,13 @@ import {addDays,children,height,level} from './model.js';
 
 const utcDay=value=>{const [y,m,d]=value.split('-').map(Number);return Date.UTC(y,m-1,d)/86400000;};
 export const dayOffset=(day,today)=>utcDay(day)-utcDay(today);
+const shortMonth=new Intl.DateTimeFormat('en-US',{month:'short'}),shortWeekday=new Intl.DateTimeFormat('en-US',{weekday:'short'});
+export function cellTooltip(day,name,today){
+ const date=new Date(day+'T12:00:00');
+ const month=shortMonth.format(date);
+ const weekday=shortWeekday.format(date);
+ return [name,`${month}. ${date.getDate()} ${weekday}`,String(dayOffset(day,today))].filter(value=>value!==undefined&&value!=='').join('\n');
+}
 export const rangesOf=node=>Array.isArray(node.bars)?node.bars:(node.start_date?[{start_date:node.start_date,end_date:node.end_date||node.start_date,color:node.color}]:[]);
 export function colorsOn(node,day){return [...new Set(rangesOf(node).filter(b=>day>=b.start_date&&day<=(b.end_date||b.start_date)).map(b=>/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#ef8080'))];}
 export function colorFill(colors){return colors.length===1?colors[0]:`linear-gradient(to bottom,${colors.map((c,i)=>`${c} ${i*100/colors.length}% ${(i+1)*100/colors.length}%`).join(',')})`;}
