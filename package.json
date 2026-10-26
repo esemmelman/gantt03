@@ -1,1 +1,1 @@
-{"name":"gantt03","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0","test":"node --test"},"devDependencies":{"@playwright/test":"1.56.1","vite":"8.3.5"}}
+{"name":"gantt03","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview --host 0.0.0.0","test":"node --test"},"devDependencies":{"@playwright/test":"1.56.1","vite":"8.3.5"},"dependencies":{"dompurify":"3.4.17"}}

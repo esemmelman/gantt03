@@ -13,7 +13,7 @@ try{
  const initialRootCount=(await api.load()).filter(n=>!n.parent_id).length;
  assert.equal(await page.locator('#expand-toggle').count(),1);
  await page.locator('.node[data-id]').filter({hasText:'Brotherhood'}).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Notes','Comments','Delete']);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Add root',exact:true}).click();
  await page.getByRole('textbox',{name:'New node name'}).fill(`QA ${suffix}`);
@@ -50,7 +50,7 @@ try{
  await page.locator('.cell').first().hover();
  assert.equal(await page.locator('#day-tooltip').evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)');
  await page.locator(`.node[data-id="${target.id}"]`).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Notes','Comments','Delete']);
  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
  for(const bar of [
   {start_date:'2026-10-27',end_date:'2026-10-29',color:'#ff0000'},
@@ -60,11 +60,10 @@ try{
   const row=page.locator('.bar-range').last();
   for(const [key,value] of Object.entries(bar))await row.locator(`[data-field=${key}]`).fill(value);
  }
- await page.locator('[name=notes]').fill('Persistence check');
  await page.getByRole('button',{name:'Save',exact:true}).click();
  await page.locator('#editor').waitFor({state:'hidden'});
  await page.reload();await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
- const saved=(await api.load()).find(n=>n.id===target.id);assert.equal(saved.notes,'Persistence check');assert.equal(saved.bars.length,2);
+ const saved=(await api.load()).find(n=>n.id===target.id);assert.equal(saved.bars.length,2);
  await page.locator('#range-start').fill('2026-10-24');await page.locator('#range-start').dispatchEvent('change');
  const coloredRow=page.locator(`.node[data-id="${target.id}"]`).locator('..');
  const overlap=coloredRow.locator('.cell').nth(4);
@@ -84,7 +83,7 @@ try{
  await page.locator(`.node[data-id="${third.id}"]`).click({button:'right'});
  await page.getByRole('menuitem',{name:'Add parent',exact:true}).click();
  await page.getByRole('textbox',{name:'New node name'}).fill(`QA wrapper ${suffix}`);
- await page.getByRole('button',{name:'Save new row and open details'}).click();
+ await page.getByRole('button',{name:'Save new row',exact:true}).click();await page.locator('.draft-row').waitFor({state:'hidden'});await page.locator('.node[data-id]').filter({hasText:`QA wrapper ${suffix}`}).click();
  await page.locator('#editor').waitFor({state:'visible'});await page.getByRole('button',{name:'Cancel',exact:true}).click();
  const wrapper=(await api.load()).find(n=>n.title===`QA wrapper ${suffix}`);
  assert.equal((await api.load()).find(n=>n.id===third.id).parent_id,wrapper.id);

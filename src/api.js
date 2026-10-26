@@ -9,6 +9,7 @@ function track(path,method,body,data){
  if(path.startsWith('gantt03_nodes')){for(const row of data||[])recording.ids.push(row.id);if(method==='DELETE'){const id=path.split('id=eq.')[1];recording.deleted.push(id);recording.ids.push(id);}}
  if(path==='rpc/gantt03_add_parent')recording.ids.push(body.target_id,data);
  if(path==='rpc/gantt03_update_colors')recording.ids.push(...body.changes.map(n=>n.id));
+ if(path==='rpc/gantt03_save_notes'||path==='rpc/gantt03_add_comment')recording.ids.push(body.target_id);
  if(path.startsWith('gantt03_settings'))recording.settings=true;
 }
 export async function request(path,method='GET',body){const res=await fetch(base+path,{method,headers:{apikey:key,'Content-Type':'application/json',Prefer:'return=representation'},body:body===undefined?undefined:JSON.stringify(body)});const data=await res.json().catch(()=>null);if(!res.ok)throw Error(data?.message||`Request failed (${res.status})`);track(path,method,body,data);return data;}
@@ -20,3 +21,6 @@ export async function addParent(id,title){return request('rpc/gantt03_add_parent
 export async function updateColors(changes){return request('rpc/gantt03_update_colors','POST',{changes});}
 export async function snapshot(){const [nodes,settings]=await Promise.all([load(),request('gantt03_settings?id=eq.1')]);return {nodes,links:settings[0].general_links};}
 export async function undoAction(action){return request('rpc/gantt03_undo_action','POST',action);}
+export async function getNode(id){const [node]=await request(`gantt03_nodes?id=eq.${id}`);if(!node)throw Error('This node was deleted.');return node;}
+export async function saveNotes(id,expected,html,text){return request('rpc/gantt03_save_notes','POST',{target_id:id,expected_html:expected,new_html:html,plain_text:text});}
+export async function addComment(id,commentId,body){return request('rpc/gantt03_add_comment','POST',{target_id:id,comment_id:commentId,comment_body:body});}

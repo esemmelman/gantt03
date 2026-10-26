@@ -13,11 +13,13 @@ npm run dev
 
 ## Use
 
-- Right-click a node (or Shift+F10): **Add parent, Add child, Sibling, Edit, Delete**. Level four has **Sibling, Edit, Delete**.
+- Right-click a node (or Shift+F10): **Add parent, Add child, Sibling, Edit, Notes, Comments, Delete**. Level four has **Sibling, Edit, Notes, Comments, Delete**.
 - **Sibling** inserts a row after the selected node's branch, with the same parent and indentation. It also works for root nodes and level-four nodes.
 - Add parent wraps a node and its branch. A wrapper that would exceed four levels is rejected atomically. The database also rejects cycles and fifth-level inserts.
-- Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; ▤ saves it and opens details; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
-- Use ▤ or double-click a node to edit its name, colored date ranges, text color, notes, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
+- Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
+- Click a node name to edit its name, colored date ranges, text color, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
+- **Notes** opens a rich text box with bold, italic, underline, headings, and lists. Notes save automatically after a short pause; closing also saves the latest keystrokes. Existing plain notes are preserved. Formatting is sanitized for display. Save failures stay visible with retry/reload controls.
+- **Comments** opens the node's comment history. Each Add comment submission appends a separate entry with a server timestamp displayed in the viewer's local timezone. Concurrent submissions are preserved, and retries do not duplicate a submission.
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
@@ -39,9 +41,10 @@ npm run build
 node scripts/browser-check.mjs
 node scripts/drag-check.mjs
 node scripts/undo-check.mjs
+node scripts/notes-comments-check.mjs
 ```
 
-The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. All have already been applied to the connected project and should not be rerun there.
+The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. All have already been applied to the connected project and should not be rerun there.
 
 ## Hosting
 
