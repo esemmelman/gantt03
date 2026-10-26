@@ -7,3 +7,4 @@ export async function create(body){return request('gantt03_nodes','POST',body);}
 export async function update(id,body){const rows=await request(`gantt03_nodes?id=eq.${id}`,'PATCH',body);if(!rows.length)throw Error('This node was deleted. Refresh the chart.');return rows;}
 export async function remove(id){return request(`gantt03_nodes?id=eq.${id}`,'DELETE');}
 export async function addParent(id,title){return request('rpc/gantt03_add_parent','POST',{target_id:id,parent_title:title});}
+export async function updateColors(changes){return request('rpc/gantt03_update_colors','POST',{changes});}
