@@ -33,3 +33,8 @@ node scripts/browser-check.mjs
 ```
 
 The browser check creates and cleans up its own temporary branch in Supabase. `supabase/schema.sql` records the initial schema and reference seed; it has already been applied to the connected project and should not be rerun there.
+
+## Hosting
+
+GitHub Pages deploys automatically from main using .github/workflows/pages.yml. The Vite base path is /gantt03/.
+

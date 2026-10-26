@@ -7,7 +7,7 @@ const errors=[];page.on('pageerror',e=>errors.push(e.message));
 let root;
 const suffix=Date.now();
 try{
- await page.goto('http://localhost:5173');
+ await page.goto('http://localhost:5173/gantt03/');
  await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
  assert.equal(await page.locator('tbody tr').count(),20);
  await page.locator('.node[data-id]').filter({hasText:'Brotherhood'}).click({button:'right'});
@@ -55,7 +55,8 @@ try{
  console.log('Browser and live Supabase checks passed: menu, four levels, CRUD, dates, persistence, atomic wrapping, cycle rejection, collapse.');
 }finally{
  if(root)await api.remove(root.id);
- await page.goto('http://localhost:5173');await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
+ await page.goto('http://localhost:5173/gantt03/');await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
  await page.screenshot({path:'preview.png',fullPage:true});
  await browser.close();
 }
+
