@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gantt chart</title></head><body>
+<nav aria-label="Chart controls">
+ <button id="expand">Expand All</button><button id="collapse">Collapse All</button><button id="notes">Notes</button><button id="links">Links</button><button id="general">General Links</button><button id="calendar">Calendar</button><button id="detail">Calendar Detail</button>
+ <span class="spacer"></span><button id="add">Add root</button><button id="refresh">Refresh</button>
+</nav>
+<div class="range"><button id="previous" aria-label="Previous month">‹</button><label>Start <input type="date" id="range-start"></label><button id="today">Today</button><button id="next" aria-label="Next month">›</button><label>Days <select id="days"><option>30</option><option>60</option><option>90</option><option>180</option><option>365</option></select></label><span id="status" role="status">Connecting…</span></div>
+<main id="chart" tabindex="0" aria-label="Gantt chart"></main>
+<footer>Right-click a node for options · Double-click to edit · Click a date cell to schedule one day</footer>
+<div id="menu" role="menu" hidden></div>
+<dialog id="editor"><form id="form"><h2 id="dialog-title">Edit node</h2><p id="dialog-context"></p><label>Name<input name="title" required maxlength="300"></label><div class="fields"><label>Start date<input type="date" name="start_date"></label><label>End date<input type="date" name="end_date"></label></div><div class="fields"><label>Bar color<input name="color" type="color" value="#ef8080"></label><label>Text color<input name="text_color" type="color" value="#000000"></label></div><label>Notes<textarea name="notes" rows="5"></textarea></label><label>Links (one URL per line)<textarea name="links" rows="3"></textarea></label><p id="form-error" role="alert"></p><div class="actions"><button type="button" id="cancel">Cancel</button><button type="submit" id="save">Save</button></div></form></dialog>
+<dialog id="panel"><h2 id="panel-title"></h2><div id="panel-content"></div><div class="actions"><button id="panel-close">Close</button></div></dialog>
+<script type="module" src="/src/app.js"></script></body></html>
