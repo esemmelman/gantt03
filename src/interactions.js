@@ -10,6 +10,12 @@ export function cellTooltip(day,name,today){
  return [name,`${month}. ${date.getDate()} ${weekday}`,String(dayOffset(day,today))].filter(value=>value!==undefined&&value!=='').join(' · ');
 }
 export const rangesOf=node=>Array.isArray(node.bars)?node.bars:(node.start_date?[{start_date:node.start_date,end_date:node.end_date||node.start_date,color:node.color}]:[]);
+export function nodeDayOffset(node,today){
+ const ranges=rangesOf(node).filter(b=>b.start_date),upcoming=[],past=[];
+ for(const bar of ranges){const end=bar.end_date||bar.start_date;if(bar.start_date<=today&&end>=today)return 0;if(bar.start_date>today)upcoming.push(bar.start_date);else past.push(end);}
+ const date=upcoming.sort()[0]||past.sort().at(-1);
+ return date?dayOffset(date,today):null;
+}
 export function colorsOn(node,day){return [...new Set(rangesOf(node).filter(b=>day>=b.start_date&&day<=(b.end_date||b.start_date)).map(b=>/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#ef8080'))];}
 export function colorFill(colors){return colors.length===1?colors[0]:`linear-gradient(to bottom,${colors.map((c,i)=>`${c} ${i*100/colors.length}% ${(i+1)*100/colors.length}%`).join(',')})`;}
 

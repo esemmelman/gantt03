@@ -1,8 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {dayOffset,cellTooltip,paintRange,colorsOn,nodeDrop} from '../src/interactions.js';
+import {dayOffset,cellTooltip,nodeDayOffset,paintRange,colorsOn,nodeDrop} from '../src/interactions.js';
 const red='#ff0000',blue='#0000ff';
 const bar=(start,end,color=red)=>({start_date:start,end_date:end,color});
+test('node day counts choose the next scheduled date, today within a range, or the most recent past date',()=>{
+ assert.equal(nodeDayOffset({bars:[]},'2026-10-25'),null);
+ assert.equal(nodeDayOffset({bars:[bar('2026-10-24','2026-10-27'),bar('2026-11-01','2026-11-01')]},'2026-10-25'),0);
+ assert.equal(nodeDayOffset({bars:[bar('2026-10-01','2026-10-02'),bar('2026-11-01','2026-11-04'),bar('2026-10-28','2026-10-29')]},'2026-10-25'),3);
+ assert.equal(nodeDayOffset({bars:[bar('2026-10-01','2026-10-02'),bar('2026-10-20','2026-10-24')]},'2026-10-25'),-1);
+});
 test('cell tooltips include the row name, requested date format, and signed integer offset',()=>{
  assert.equal(cellTooltip('2026-10-25','Project name','2026-10-25'),'Project name · Oct. 25 Sun · 0');
  assert.equal(cellTooltip('2026-10-24','Task name','2026-10-25'),'Task name · Oct. 24 Sat · -1');
