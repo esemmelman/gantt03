@@ -19,8 +19,15 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  }
  chart.addEventListener('pointermove',hoverCorner);chart.addEventListener('pointerover',hoverCorner);chart.addEventListener('pointerleave',()=>{if(!gesture?.active)hideCorner();dismissedCorner=null;});
  chart.addEventListener('scroll',()=>{if(!gesture?.active)hideCorner();});
- function tooltip(e){const cell=e.target.closest?.('[data-day]');if(!cell||e.target.closest('.fill-handle')||gesture?.active||nodeDrag){hideTip();return;}
-  const value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));tip.textContent=value;tip.hidden=false;
+ function tooltip(e){
+  if(e.target.closest('.fill-handle')||gesture?.active||nodeDrag){hideTip();return;}
+  const cell=e.target.closest?.('[data-day]'),task=e.target.closest?.('.node[data-id]');let value;
+  if(cell)value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));
+  else if(task&&!e.target.closest('.node-label')){
+   const first=rangesOf(node(task.dataset.id)||{}).map(bar=>bar.start_date).filter(Boolean).sort()[0];
+   if(first)value='First colored cell: '+new Date(first+'T12:00:00').toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  }
+  if(!value){hideTip();return;}tip.textContent=value;tip.hidden=false;
   const bounds=tip.getBoundingClientRect();tip.style.left=`${Math.max(4,Math.min(innerWidth-bounds.width-4,e.clientX+12))}px`;tip.style.top=`${Math.max(4,Math.min(innerHeight-bounds.height-4,e.clientY+15))}px`;
  }
  chart.addEventListener('pointermove',tooltip);chart.addEventListener('pointerover',tooltip);chart.addEventListener('pointerleave',hideTip);chart.addEventListener('scroll',hideTip);
