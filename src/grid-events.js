@@ -7,6 +7,30 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  const node=id=>getNodes().find(n=>n.id===id);
  const dayCell=target=>target?.closest?.('.cell[data-day]');
  const hideTip=()=>{tip.hidden=true;};
+ // Reveal off-screen dates while the mouse rests near either timeline edge.
+ let edgeFrame=0,edgePointer=null,edgeDirection=0,edgeEnteredAt=0,edgeLastFrame=0;
+ function stopEdgeScroll(){cancelAnimationFrame(edgeFrame);edgeFrame=0;edgeDirection=0;edgeLastFrame=0;}
+ function edgeVelocity(){
+  if(!edgePointer||edgePointer.buttons||gesture?.active||nodeDrag||isBusy()||!menu.hidden||document.querySelector('dialog[open]'))return 0;
+  const r=chart.getBoundingClientRect(),labelWidth=chart.querySelector('.node')?.getBoundingClientRect().width||320,left=r.left+labelWidth,right=r.left+chart.clientLeft+chart.clientWidth;
+  const {x,y}=edgePointer,zone=36;
+  if(y<r.top||y>r.top+chart.clientTop+chart.clientHeight||x<left||x>Math.min(innerWidth,r.right+16)||chart.scrollWidth<=chart.clientWidth)return 0;
+  if(x>=right-zone&&chart.scrollLeft<chart.scrollWidth-chart.clientWidth)return 100+400*Math.min(1,Math.max(0,(x-(right-zone))/zone));
+  if(x<=left+zone&&chart.scrollLeft>0)return -(100+400*Math.min(1,Math.max(0,((left+zone)-x)/zone)));
+  return 0;
+ }
+ function edgeScrollTick(time){
+  edgeFrame=0;const velocity=edgeVelocity(),direction=Math.sign(velocity);
+  if(!direction){stopEdgeScroll();return;}
+  if(direction!==edgeDirection){edgeDirection=direction;edgeEnteredAt=time;edgeLastFrame=time;}
+  const elapsed=Math.min(40,Math.max(0,time-edgeLastFrame));edgeLastFrame=time;
+  if(time-edgeEnteredAt>=300){hideTip();hideCorner();chart.scrollLeft+=velocity*elapsed/1000;}
+  edgeFrame=requestAnimationFrame(edgeScrollTick);
+ }
+ document.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;edgePointer={x:e.clientX,y:e.clientY,buttons:e.buttons};if(!edgeVelocity()){stopEdgeScroll();return;}if(!edgeFrame)edgeFrame=requestAnimationFrame(edgeScrollTick);});
+ document.addEventListener('pointerdown',()=>{edgePointer=null;stopEdgeScroll();});
+ document.addEventListener('pointerout',e=>{if(!e.relatedTarget){edgePointer=null;stopEdgeScroll();}});
+ window.addEventListener('blur',()=>{edgePointer=null;stopEdgeScroll();});
  let cornerKey=null,dismissedCorner=null,releasedAt=null;
  function hideCorner(dismiss=false){if(dismiss)dismissedCorner=cornerKey;cornerKey=null;chart.querySelectorAll('.corner-hot').forEach(cell=>cell.classList.remove('corner-hot'));}
  function hoverCorner(e){

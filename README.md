@@ -30,6 +30,7 @@ npm run dev
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
 - The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges.
+- Rest the mouse near the right edge of the date grid to reveal later dates, or near the left edge beside the frozen node column to return to earlier dates. Scrolling begins after a short pause, speeds up nearer the edge, and stops when the pointer moves away. It pauses for menus and dialogs; color drags continue to auto-scroll at the edges.
 - Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Yellow, Green, Clear**. This changes that date only; other dates on the row are preserved. Existing Blue schedule ranges were converted to Yellow. Date columns are 52px wide.
 - Drag the body of a colored cell to move its colors to another date/row and clear the source. Hover near a cell’s lower-right corner to show a blue circle. Hover the circle for a cross cursor, then drag it to paint. The circle disappears on mouse release. Painting fills the rectangle between source and destination, including intermediate dates and visible rows. A striped source carries all its colors. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
@@ -53,6 +54,7 @@ node scripts/notes-grid-check.mjs
 node scripts/notes-alignment-check.mjs
 node scripts/node-level-check.mjs
 node scripts/archive-check.mjs
+node scripts/edge-scroll-check.mjs
 ```
 
 The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. `supabase/archive-yellow.sql` adds archive state and converts Blue schedules to Yellow. All have already been applied to the connected project and should not be rerun there.
