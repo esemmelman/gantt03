@@ -20,6 +20,7 @@ npm run dev
 - Click a node name to edit its name, colored date ranges, text color, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
 - A right-aligned integer in the node cell shows days until its next scheduled date. If all dates are past, it shows days since the most recent date as a negative integer. Active-today ranges and unscheduled nodes show no count. Counts update when the local date changes.
 - **Notes** opens a rich text box with bold, italic, underline, headings, and lists. Notes save automatically after a short pause; closing also saves the latest keystrokes. Existing plain notes are preserved. Formatting is sanitized for display. Save failures stay visible with retry/reload controls.
+- In Notes, **Insert 20 × 8 grid** inserts an editable table with 20 rows and 8 columns at the cursor. Use Tab / Shift+Tab between cells. Grid content saves automatically with the note and supports undo after closing Notes.
 - **Comments** opens the node's comment history. Each Add comment submission appends a separate entry with a server timestamp displayed in the viewer's local timezone. Concurrent submissions are preserved, and retries do not duplicate a submission.
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
@@ -43,6 +44,7 @@ node scripts/browser-check.mjs
 node scripts/drag-check.mjs
 node scripts/undo-check.mjs
 node scripts/notes-comments-check.mjs
+node scripts/notes-grid-check.mjs
 ```
 
 The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. All have already been applied to the connected project and should not be rerun there.
