@@ -72,7 +72,7 @@ try{
  assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/255, 0, 0/);
  assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/0, 0, 255/);
  // Clicking an unscheduled day appends a range without erasing prior colors.
- await coloredRow.locator('.cell').nth(8).click();
+ await coloredRow.locator('.cell').nth(8).dblclick();
  assert.equal(await page.locator('.bar-range').count(),3);
  await page.getByRole('button',{name:'Save',exact:true}).click();await page.locator('#editor').waitFor({state:'hidden'});
  await assert.rejects(()=>api.create({parent_id:target.id,title:'Illegal fifth level'}),/four levels/);

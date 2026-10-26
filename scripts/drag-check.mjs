@@ -12,7 +12,7 @@ const name=n=>page.locator(`.node[data-id="${n.id}"]`);
 async function saved(){await page.waitForFunction(()=>document.querySelector('#status').textContent==='Saved · Supabase');}
 async function reload(){await page.reload();await saved();await page.locator('#range-start').fill('2026-10-24');await page.locator('#range-start').dispatchEvent('change');}
 async function menu(n,day,label){await cell(n,day).click({button:'right'});assert.deepEqual(await page.locator('#menu button').allTextContents(),['Red','Blue','Green','Clear']);await page.getByRole('menuitem',{name:label,exact:true}).click();await saved();}
-async function drag(from,to,shift=false){const a=await from.boundingBox(),b=await to.boundingBox();if(shift)await page.keyboard.down('Shift');await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:12});await page.mouse.up();if(shift)await page.keyboard.up('Shift');await saved();assert.equal(await page.locator('#editor').isVisible(),false);}
+async function drag(from,to,shift=false){if(await from.evaluate(n=>n.classList.contains('fill-handle')))await from.evaluate(n=>n.parentElement.click());const a=await from.boundingBox(),b=await to.boundingBox();if(shift)await page.keyboard.down('Shift');await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:12});await page.mouse.up();if(shift)await page.keyboard.up('Shift');await saved();assert.equal(await page.locator('#editor').isVisible(),false);}
 async function data(n){return (await api.load()).find(x=>x.id===n.id);}
 async function nativeDrop(source,target,fraction=.5){const box=await target.boundingBox();await source.dragTo(target,{sourcePosition:{x:110,y:11},targetPosition:{x:120,y:Math.floor(box.height*fraction)}});await saved();}
 try{
@@ -24,8 +24,8 @@ try{
  await page.locator('thead tr:last-child [data-day]').first().hover();assert.equal((await page.locator('#day-tooltip').textContent()).split('\n').length,2);
  assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),false);
  for(const [day,color,hex] of [['2026-10-24','Red','#ff0000'],['2026-10-25','Blue','#0000ff'],['2026-10-26','Green','#008000']]){await menu(a,day,color);assert.deepEqual(colorsOn(await data(a),day),[hex]);}
- assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),true);
- const bounds=await cell(a,'2026-10-24').boundingBox(),handle=await cell(a,'2026-10-24').locator('.fill-handle').boundingBox();assert.ok(Math.abs(bounds.x+bounds.width-handle.x-handle.width)<2);assert.ok(Math.abs(bounds.y+bounds.height-handle.y-handle.height)<2);
+ await cell(a,'2026-10-24').click();assert.equal(await page.locator('#editor').isVisible(),false);assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),true);assert.equal(await page.locator('.fill-handle:visible').count(),1);await cell(a,'2026-10-24').locator('.fill-handle').hover();assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').evaluate(n=>getComputedStyle(n).cursor),'crosshair');assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').textContent(),'');
+ const bounds=await cell(a,'2026-10-24').boundingBox(),handle=await cell(a,'2026-10-24').locator('.fill-handle').boundingBox();assert.ok(Math.abs(bounds.x+bounds.width-handle.x-handle.width/2)<2);assert.ok(Math.abs(bounds.y+bounds.height-handle.y-handle.height/2)<2);
  await menu(a,'2026-10-25','Clear');assert.deepEqual(colorsOn(await data(a),'2026-10-25'),[]);assert.deepEqual(colorsOn(await data(a),'2026-10-24'),['#ff0000']);
  // A normal unmodified drag moves the color directly, without a handle or mode change.
  await drag(cell(a,'2026-10-24'),cell(b,'2026-10-29'));
@@ -63,7 +63,7 @@ try{
  await reload();assert.deepEqual(colorsOn(await data(b),'2026-10-30'),['#ff0000']);
  assert.equal(await cell(b,'2026-10-30').evaluate(c=>getComputedStyle(c).backgroundColor),'rgb(255, 0, 0)');
  assert.deepEqual(errors,[]);
- console.log('Passed single custom tooltip; lower-right paint cross; cell-body moves; Red/Blue/Green/Clear; paint rectangle; atomic conflict rollback; direct node reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
+ console.log('Passed single custom tooltip; selected blue fill circle; cell-body moves; Red/Blue/Green/Clear; paint rectangle; atomic conflict rollback; direct node reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
 }finally{
  for(const id of cleanup)await api.remove(id);
  await browser.close();
