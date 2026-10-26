@@ -23,7 +23,9 @@ async function undoLast(){
  try{await api.undoAction(action);undoStack.pop();await refresh();status('Undone · Supabase');}catch(e){status(e.message,true);}finally{busy=false;undoing=false;}
 }
 function dateCount(){return $('#days').value==='through-aug-2027'?Math.max(1,dayOffset('2027-08-31',start.value)+1):Number($('#days').value);}
-function dates(){return Array.from({length:dateCount()},(_,i)=>addDays(start.value,i));}
+const historyDays=90;
+function dates(){return Array.from({length:historyDays+dateCount()},(_,i)=>addDays(start.value,i-historyDays));}
+function showStartDate(){const width=$('#chart th[data-day]')?.getBoundingClientRect().width||52;$('#chart').scrollLeft=historyDays*width;}
 function select(id){selected=id;document.querySelectorAll('.node[data-id]').forEach(n=>n.classList.toggle('selected',n.dataset.id===id));}
 function selectCell(id,day){activeCell={id,day};select(id);document.querySelectorAll('.cell').forEach(cell=>{const active=cell.dataset.nodeId===id&&cell.dataset.day===day;cell.classList.toggle('cell-selected',active);cell.setAttribute('aria-selected',String(active));});}
 function render(){const parents=visible(nodes,new Set()).filter(n=>children(nodes,n.id).some(child=>!child.archived)),anyCollapsed=parents.some(n=>collapsed.has(n.id));$('#expand-toggle').textContent=anyCollapsed?'Expand All':'Collapse All';$('#expand-toggle').setAttribute('aria-expanded',String(!anyCollapsed));const table=el('table'),head=el('thead'),days=dates();
@@ -110,11 +112,12 @@ $('#general').onclick=async()=>{try{const [settings]=await api.request('gantt03_
 function calendar(detail){showPanel(detail?'Calendar Detail':'Calendar',c=>{const end=addDays(start.value,dateCount()-1),scheduled=visible(nodes,new Set()).flatMap(n=>barRanges(n).map(bar=>({...n,...bar}))).filter(n=>n.start_date&&n.start_date<=end&&(n.end_date||n.start_date)>=start.value).sort((a,b)=>a.start_date.localeCompare(b.start_date));c.append(el('p',`${start.value} — ${end}`));if(!scheduled.length)c.append(el('p','No scheduled nodes in this date range.'));for(const n of scheduled){const section=el('section'),b=el('button',`${n.start_date}${n.end_date&&n.end_date!==n.start_date?' — '+n.end_date:''} · ${n.title}`);b.className='calendar-event';b.style.borderLeft='8px solid '+(/^#[0-9a-f]{6}$/i.test(n.color)?n.color:'#ef8080');b.onclick=()=>{$('#panel').close();openEditor('Edit',n);};section.append(b);if(detail){const path=[];let p=n;while(p){path.unshift(p.title);p=nodes.find(x=>x.id===p.parent_id);}section.append(el('p',path.join(' › ')),el('p',n.notes||'No notes'));appendLinks(section,n.links);}c.append(section);}});}
 $('#calendar').onclick=()=>calendar(false);$('#detail').onclick=()=>calendar(true);
 $('#expand-toggle').onclick=()=>{const parents=visible(nodes,new Set()).filter(n=>children(nodes,n.id).some(child=>!child.archived));if(parents.some(n=>collapsed.has(n.id)))collapsed.clear();else collapsed=new Set(parents.map(n=>n.id));remember();render();};
-$('#add').onclick=()=>startDraft('Add root');$('#refresh').onclick=refresh;start.onchange=()=>{if(start.value)render();};$('#days').onchange=render;$('#today').onclick=()=>{start.value=addDays(iso(new Date()),-1);render();$('#chart').scrollLeft=0;};$('#previous').onclick=()=>{start.value=addDays(start.value,-30);render();$('#chart').scrollLeft=0;};$('#next').onclick=()=>{start.value=addDays(start.value,30);render();$('#chart').scrollLeft=0;};
+$('#add').onclick=()=>startDraft('Add root');$('#refresh').onclick=refresh;start.onchange=()=>{if(start.value){render();showStartDate();}};$('#days').onchange=()=>{render();showStartDate();};$('#today').onclick=()=>{start.value=addDays(iso(new Date()),-1);render();showStartDate();};$('#previous').onclick=()=>{start.value=addDays(start.value,-30);render();showStartDate();};$('#next').onclick=()=>{start.value=addDays(start.value,30);render();showStartDate();};
 const nodeDetails=createNodeDetails({mutate,isBusy:()=>busy,status});
 installGridInteractions({getNodes:()=>nodes,getVisible:()=>visible(nodes,collapsed),isBusy:()=>busy,
  saveColors:changes=>mutate(()=>api.updateColors(changes)),
  moveNode:(id,values)=>mutate(async()=>{await api.update(id,values);selected=id;collapsed.delete(values.parent_id);remember();}),selectCell,status,undo:undoLast});
 await refresh();
+showStartDate();
 
 let displayedDay=iso(new Date());setInterval(()=>{const today=iso(new Date());if(today!==displayedDay){displayedDay=today;render();}},60000);

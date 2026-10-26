@@ -66,12 +66,12 @@ try{
  const saved=(await api.load()).find(n=>n.id===target.id);assert.equal(saved.bars.length,2);
  await page.locator('#range-start').fill('2026-10-24');await page.locator('#range-start').dispatchEvent('change');
  const coloredRow=page.locator(`.node[data-id="${target.id}"]`).locator('..');
- const overlap=coloredRow.locator('.cell').nth(4);
+ const overlap=coloredRow.locator('.cell[data-day="2026-10-28"]');
  assert.match(await overlap.evaluate(n=>n.style.getPropertyValue('--bar')),/linear-gradient/);
  assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/255, 0, 0/);
  assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/255, 255, 0/);
  // Clicking an unscheduled day appends a range without erasing prior colors.
- await coloredRow.locator('.cell').nth(8).dblclick();
+ await coloredRow.locator('.cell[data-day="2026-11-01"]').dblclick();
  assert.equal(await page.locator('.bar-range').count(),3);
  await page.getByRole('button',{name:'Save',exact:true}).click();await page.locator('#editor').waitFor({state:'hidden'});
  await assert.rejects(()=>api.create({parent_id:target.id,title:'Illegal fifth level'}),/four levels/);

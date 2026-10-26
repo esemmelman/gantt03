@@ -5,6 +5,7 @@ const page=await browser.newPage({viewport:{width:1200,height:900}}),errors=[];p
 const offset=()=>page.locator('#chart').evaluate(n=>n.scrollLeft);
 try{
  await page.goto('http://localhost:5173/gantt03/');await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
+ await page.locator('#chart').evaluate(n=>{n.scrollLeft=0;});
  const bounds=await page.locator('#chart').boundingBox(),labelWidth=await page.locator('.node').first().evaluate(n=>n.getBoundingClientRect().width),y=bounds.y+50,left=bounds.x+labelWidth;
  await page.mouse.move(1199,y);await page.waitForFunction(()=>document.querySelector('#chart').scrollLeft>200);const advanced=await offset();assert.ok(advanced>200);
  await page.mouse.move((left+bounds.x+bounds.width)/2,y);await page.waitForTimeout(100);const stopped=await offset();await page.waitForTimeout(400);assert.equal(await offset(),stopped);
