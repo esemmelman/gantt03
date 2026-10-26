@@ -19,9 +19,9 @@ try{
  const a=await create('A',null,-1000),b=await create('B',null,-999),child=await create('child',a.id),grandchild=await create('grandchild',child.id),fourth=await create('fourth',grandchild.id);
  await page.goto('http://localhost:5173/gantt03/');await saved();await reload();
  await cell(a,'2026-10-24').hover();
- const tooltip=(await page.locator('#day-tooltip').textContent()).split('\n');assert.equal(tooltip[0],a.title);assert.equal(tooltip[1],'Oct. 24 Sat');assert.match(tooltip[2],/^-?\d+$/);
+ const tooltip=(await page.locator('#day-tooltip').textContent()).split(' · ');assert.equal(tooltip[0],a.title);assert.equal(tooltip[1],'Oct. 24 Sat');assert.match(tooltip[2],/^-?\d+$/);
  assert.equal(await page.locator('[data-day][title]').count(),0,'Native title tooltips must not duplicate the custom tooltip');
- await page.locator('thead tr:last-child [data-day]').first().hover();assert.equal((await page.locator('#day-tooltip').textContent()).split('\n').length,2);
+ await page.locator('thead tr:last-child [data-day]').first().hover();assert.equal((await page.locator('#day-tooltip').textContent()).split(' · ').length,2);
  assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),false);
  for(const [day,color,hex] of [['2026-10-24','Red','#ff0000'],['2026-10-25','Blue','#0000ff'],['2026-10-26','Green','#008000']]){await menu(a,day,color);assert.deepEqual(colorsOn(await data(a),day),[hex]);}
  await cell(a,'2026-10-24').click();assert.equal(await page.locator('#editor').isVisible(),false);assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),false);await cell(a,'2026-10-24').hover({position:{x:58,y:20}});assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),true);assert.equal(await page.locator('.fill-handle:visible').count(),1);await cell(a,'2026-10-24').locator('.fill-handle').hover();assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').evaluate(n=>getComputedStyle(n).cursor),'crosshair');assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').textContent(),'');

@@ -7,7 +7,7 @@ export function cellTooltip(day,name,today){
  const date=new Date(day+'T12:00:00');
  const month=shortMonth.format(date);
  const weekday=shortWeekday.format(date);
- return [name,`${month}. ${date.getDate()} ${weekday}`,String(dayOffset(day,today))].filter(value=>value!==undefined&&value!=='').join('\n');
+ return [name,`${month}. ${date.getDate()} ${weekday}`,String(dayOffset(day,today))].filter(value=>value!==undefined&&value!=='').join(' · ');
 }
 export const rangesOf=node=>Array.isArray(node.bars)?node.bars:(node.start_date?[{start_date:node.start_date,end_date:node.end_date||node.start_date,color:node.color}]:[]);
 export function colorsOn(node,day){return [...new Set(rangesOf(node).filter(b=>day>=b.start_date&&day<=(b.end_date||b.start_date)).map(b=>/^#[0-9a-f]{6}$/i.test(b.color)?b.color:'#ef8080'))];}
