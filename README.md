@@ -15,9 +15,9 @@ npm run dev
 
 - Right-click a node (or Shift+F10): **Add parent, Add child, Edit, Delete**. Level four has only **Edit, Delete**.
 - Add parent wraps a node and its branch. A wrapper that would exceed four levels is rejected atomically. The database also rejects cycles and fifth-level inserts.
-- Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
-- Double-click a node to edit its name, dates, colors, notes, or links. Click a date cell to open the editor with that day selected; clearing both dates removes the bar.
-- Expand All / Collapse All and individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
+- Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; ▤ saves it and opens details; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
+- Use ▤ or double-click a node to edit its name, colored date ranges, text color, notes, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Clicking an unscheduled date appends a one-day range without replacing existing ranges.
+- One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
 
@@ -32,7 +32,7 @@ npm run build
 node scripts/browser-check.mjs
 ```
 
-The browser check creates and cleans up its own temporary branch in Supabase. `supabase/schema.sql` records the initial schema and reference seed; it has already been applied to the connected project and should not be rerun there.
+The browser check creates and cleans up its own temporary branch in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule. Both have already been applied to the connected project and should not be rerun there.
 
 ## Hosting
 
