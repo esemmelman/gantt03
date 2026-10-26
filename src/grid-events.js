@@ -8,7 +8,7 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  const dayCell=target=>target?.closest?.('.cell[data-day]');
  const hideTip=()=>{tip.hidden=true;};
  function tooltip(e){const cell=e.target.closest?.('[data-day]');if(!cell||gesture?.active||nodeDrag){hideTip();return;}
-  const value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));cell.title=value;tip.textContent=value;tip.hidden=false;
+  const value=cellTooltip(cell.dataset.day,node(cell.dataset.nodeId)?.title,iso(new Date()));tip.textContent=value;tip.hidden=false;
   const bounds=tip.getBoundingClientRect();tip.style.left=`${Math.max(4,Math.min(innerWidth-bounds.width-4,e.clientX+12))}px`;tip.style.top=`${Math.max(4,Math.min(innerHeight-bounds.height-4,e.clientY+15))}px`;
  }
  chart.addEventListener('pointermove',tooltip);chart.addEventListener('pointerover',tooltip);chart.addEventListener('pointerleave',hideTip);chart.addEventListener('scroll',hideTip);
@@ -55,7 +55,7 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  chart.addEventListener('pointerdown',e=>{
   hideTip();
   const cell=dayCell(e.target);if(e.button!==0||!cell||isBusy()||nodeDrag)return;const n=node(cell.dataset.nodeId),colors=colorsOn(n,cell.dataset.day);if(!colors.length)return;
-  gesture={id:n.id,day:cell.dataset.day,colors,mode:e.altKey?'paint':e.shiftKey?'move':document.querySelector('#color-drag-mode').value,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,pointerId:e.pointerId,active:false};
+  gesture={id:n.id,day:cell.dataset.day,colors,mode:e.target.closest('.fill-handle')?'paint':'move',startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,pointerId:e.pointerId,active:false};
  });
  document.addEventListener('pointermove',e=>{
   const g=gesture;if(!g||e.pointerId!==g.pointerId)return;g.x=e.clientX;g.y=e.clientY;

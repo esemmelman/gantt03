@@ -20,28 +20,29 @@ try{
  await page.goto('http://localhost:5173/gantt03/');await saved();await reload();
  await cell(a,'2026-10-24').hover();
  const tooltip=(await page.locator('#day-tooltip').textContent()).split('\n');assert.equal(tooltip[0],a.title);assert.equal(tooltip[1],'Oct. 24 Sat');assert.match(tooltip[2],/^-?\d+$/);
- const offsets=await page.evaluate(()=>{const cells=[...document.querySelectorAll('thead tr:last-child [data-day]')];return cells.slice(0,3).map(c=>Number(c.title.split('\n').at(-1)));});assert.equal(offsets[1]-offsets[0],1);assert.equal(offsets[2]-offsets[1],1);
- assert.equal(await page.locator('#color-drag-mode').inputValue(),'move');
+ assert.equal(await page.locator('[data-day][title]').count(),0,'Native title tooltips must not duplicate the custom tooltip');
+ await page.locator('thead tr:last-child [data-day]').first().hover();assert.equal((await page.locator('#day-tooltip').textContent()).split('\n').length,2);
+ assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),false);
  for(const [day,color,hex] of [['2026-10-24','Red','#ff0000'],['2026-10-25','Blue','#0000ff'],['2026-10-26','Green','#008000']]){await menu(a,day,color);assert.deepEqual(colorsOn(await data(a),day),[hex]);}
+ assert.equal(await cell(a,'2026-10-24').locator('.fill-handle').isVisible(),true);
+ const bounds=await cell(a,'2026-10-24').boundingBox(),handle=await cell(a,'2026-10-24').locator('.fill-handle').boundingBox();assert.ok(Math.abs(bounds.x+bounds.width-handle.x-handle.width)<2);assert.ok(Math.abs(bounds.y+bounds.height-handle.y-handle.height)<2);
  await menu(a,'2026-10-25','Clear');assert.deepEqual(colorsOn(await data(a),'2026-10-25'),[]);assert.deepEqual(colorsOn(await data(a),'2026-10-24'),['#ff0000']);
  // A normal unmodified drag moves the color directly, without a handle or mode change.
  await drag(cell(a,'2026-10-24'),cell(b,'2026-10-29'));
  assert.deepEqual(colorsOn(await data(a),'2026-10-24'),[]);assert.deepEqual(colorsOn(await data(b),'2026-10-29'),['#ff0000']);
  await drag(cell(b,'2026-10-29'),cell(a,'2026-10-24'));
- await page.locator('#color-drag-mode').selectOption('paint');
  // Paint includes intermediate cells, and clearing the middle splits the run.
- await drag(cell(a,'2026-10-24'),cell(a,'2026-10-28'));
+ await drag(cell(a,'2026-10-24').locator('.fill-handle'),cell(a,'2026-10-28'));
  for(const day of ['2026-10-24','2026-10-25','2026-10-26','2026-10-27','2026-10-28'])assert.deepEqual(colorsOn(await data(a),day),['#ff0000']);
  await menu(a,'2026-10-26','Clear');assert.deepEqual(colorsOn(await data(a),'2026-10-26'),[]);assert.deepEqual(colorsOn(await data(a),'2026-10-27'),['#ff0000']);
- // Shift drag moves one cell across rows, preserving neighboring dates.
- await drag(cell(a,'2026-10-24'),cell(b,'2026-10-29'),true);
+ // Holding the cell body moves one cell across rows, preserving neighboring dates.
+ await drag(cell(a,'2026-10-24'),cell(b,'2026-10-29'));
  assert.deepEqual(colorsOn(await data(a),'2026-10-24'),[]);assert.deepEqual(colorsOn(await data(a),'2026-10-25'),['#ff0000']);assert.deepEqual(colorsOn(await data(b),'2026-10-29'),['#ff0000']);
- // Explicit Move mode works within one row.
- await page.locator('#color-drag-mode').selectOption('move');await drag(cell(b,'2026-10-29'),cell(b,'2026-10-30'));
+ // Moving within one row also uses the cell body, without a mode selector.
+ await drag(cell(b,'2026-10-29'),cell(b,'2026-10-30'));
  assert.deepEqual(colorsOn(await data(b),'2026-10-29'),[]);assert.deepEqual(colorsOn(await data(b),'2026-10-30'),['#ff0000']);
- await page.locator('#color-drag-mode').selectOption('paint');
  // Rectangle painting covers every visible row and every intermediate date.
- await drag(cell(a,'2026-10-25'),cell(child,'2026-10-27'));
+ await drag(cell(a,'2026-10-25').locator('.fill-handle'),cell(child,'2026-10-27'));
  for(const n of [a,child])for(const day of ['2026-10-25','2026-10-26','2026-10-27'])assert.deepEqual(colorsOn(await data(n),day),['#ff0000']);
  // A stale two-row save rolls back all changes, even an earlier valid row.
  const oldA=await data(a),oldB=await data(b),sorted=[oldA,oldB].sort((x,y)=>x.id.localeCompare(y.id));
@@ -62,7 +63,7 @@ try{
  await reload();assert.deepEqual(colorsOn(await data(b),'2026-10-30'),['#ff0000']);
  assert.equal(await cell(b,'2026-10-30').evaluate(c=>getComputedStyle(c).backgroundColor),'rgb(255, 0, 0)');
  assert.deepEqual(errors,[]);
- console.log('Passed name/date/offset tooltips; direct color drag and drop; Red/Blue/Green/Clear; paint rectangle; atomic conflict rollback; direct node reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
+ console.log('Passed single custom tooltip; lower-right paint cross; cell-body moves; Red/Blue/Green/Clear; paint rectangle; atomic conflict rollback; direct node reorder/nest/root drops; invalid depth/cycle drops; reload persistence.');
 }finally{
  for(const id of cleanup)await api.remove(id);
  await browser.close();
