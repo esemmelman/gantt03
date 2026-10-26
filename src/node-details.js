@@ -1,7 +1,11 @@
 import DOMPurify from 'dompurify';
 import * as api from './api.js';
 
-const clean=html=>DOMPurify.sanitize(html,{ALLOWED_TAGS:['b','strong','i','em','u','s','p','div','br','ul','ol','li','blockquote','h2','h3','a','code','pre','table','thead','tbody','tr','td','th'],ALLOWED_ATTR:['href','title','aria-label'],ALLOW_DATA_ATTR:false});
+DOMPurify.addHook('uponSanitizeAttribute',(node,data)=>{
+ if(data.attrName==='style'){const alignment=node.style?.textAlign;if(['left','center','right'].includes(alignment))data.attrValue=`text-align: ${alignment};`;else data.keepAttr=false;}
+ if(data.attrName==='align'&&!['left','center','right'].includes(data.attrValue))data.keepAttr=false;
+});
+const clean=html=>DOMPurify.sanitize(html,{ALLOWED_TAGS:['b','strong','i','em','u','s','p','div','br','ul','ol','li','blockquote','h2','h3','a','code','pre','table','thead','tbody','tr','td','th'],ALLOWED_ATTR:['href','title','aria-label','style','align'],ALLOW_DATA_ATTR:false});
 export function createNodeDetails({mutate,isBusy,status}){
  const $=id=>document.getElementById(id),notes=$('notes-dialog'),editor=$('rich-notes'),noteStatus=$('notes-status'),comments=$('comments-dialog');
  let noteId=null,expectedHtml='',savedEditorHtml='',timer=null,pending=null,loading=false,closing=false,clearing=false;
@@ -22,6 +26,15 @@ export function createNodeDetails({mutate,isBusy,status}){
  editor.addEventListener('paste',e=>{e.preventDefault();const html=e.clipboardData.getData('text/html'),text=e.clipboardData.getData('text/plain');if(html)document.execCommand('insertHTML',false,clean(html));else document.execCommand('insertText',false,text);schedule();});
  $('notes-toolbar').addEventListener('pointerdown',e=>{if(e.target.closest('button'))e.preventDefault();});
  $('notes-toolbar').addEventListener('click',e=>{const button=e.target.closest('[data-command]');if(!button||loading||closing||clearing)return;editor.focus();document.execCommand(button.dataset.command,false,button.dataset.value||null);schedule();});
+ function alignment(){
+  const selection=window.getSelection(),anchor=selection?.anchorNode;let element=anchor?.nodeType===Node.ELEMENT_NODE?anchor:anchor?.parentElement;
+  if(!element||!editor.contains(element))return 'left';
+  if(element===editor)element=editor.children[selection.anchorOffset]||editor.firstElementChild||editor;
+  const value=getComputedStyle(element).textAlign;return value==='center'?'center':value==='right'||value==='end'?'right':'left';
+ }
+ function updateAlignment(){const current=alignment(),next={left:'center',center:'right',right:'left'}[current],button=$('notes-align');button.textContent=`Align: ${current[0].toUpperCase()+current.slice(1)}`;button.setAttribute('aria-label',`Alignment: ${current}. Click to align ${next}`);}
+ $('notes-align').onclick=()=>{if(loading||closing||clearing)return;editor.focus();const next={left:'Center',center:'Right',right:'Left'}[alignment()];document.execCommand(`justify${next}`,false,null);updateAlignment();schedule();};
+ document.addEventListener('selectionchange',()=>{if(notes.open)updateAlignment();});
  $('notes-clear').onclick=async()=>{
   if(loading||closing||clearing||!noteId)return;clearing=true;$('notes-clear').disabled=true;$('notes-close').disabled=true;editor.contentEditable='false';clearTimeout(timer);
   try{
