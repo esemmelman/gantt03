@@ -20,6 +20,7 @@ npm run dev
 - Click a node name to edit its name, colored date ranges, text color, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
 - To change a node's level, click its name and choose **Level** and **Parent**, then Save. Level 1 makes it a root. The entire branch moves together; unavailable levels and invalid parents are excluded so no branch exceeds four levels or forms a cycle. Esc can undo a saved move.
 - A right-aligned integer in the node cell shows days until its next scheduled date. If all dates are past, it shows days since the most recent date as a negative integer. Active-today ranges show 0; unscheduled nodes show no count. Counts update when the local date changes.
+- Click that integer to reveal and select its corresponding colored date cell. Dates outside the currently loaded timeline are loaded automatically. Clicking the node name still opens Edit node.
 - **Notes** opens a rich text box with bold, italic, underline, headings, and lists. Notes save automatically after a short pause; closing also saves the latest keystrokes. Existing plain notes are preserved. Formatting is sanitized for display. Save failures stay visible with retry/reload controls.
 - The single **Align** button cycles **Left → Center → Right → Left** for the current paragraph or selected text, and saves the alignment automatically.
 - Click any cell in a Notes grid, then use **Align** to align its entire column. The button shows the active column letter, such as **Align B: Center**. Other columns retain their alignment.
@@ -56,6 +57,7 @@ node scripts/node-level-check.mjs
 node scripts/archive-check.mjs
 node scripts/edge-scroll-check.mjs
 node scripts/date-history-check.mjs
+node scripts/day-count-jump-check.mjs
 ```
 
 The browser checks create and clean up their own temporary branches in Supabase. `supabase/schema.sql` records the initial schema and reference seed; `supabase/add-colored-ranges.sql` adds multiple colors while preserving the prior schedule; `supabase/cell-color-edits.sql` adds atomic color edits. `supabase/undo-actions.sql` adds guarded undo. `supabase/notes-comments.sql` adds rich notes, timestamped comments, and extends undo to preserve both. `supabase/archive-yellow.sql` adds archive state and converts Blue schedules to Yellow. All have already been applied to the connected project and should not be rerun there.

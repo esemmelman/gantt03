@@ -11,3 +11,4 @@
 .fields select{width:100%;min-width:0}
 
 .archive-entry{display:flex;gap:16px;align-items:center;justify-content:space-between;white-space:normal}.archive-entry button{padding:5px 12px;cursor:pointer;flex-shrink:0}
+.node-offset{border:0;background:transparent;font:inherit;font-weight:normal;font-variant-numeric:tabular-nums;padding:0 0 0 4px;line-height:21px;cursor:pointer}.node-offset:hover{text-decoration:underline}.node-offset:focus-visible{outline:1px solid currentColor}
