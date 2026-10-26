@@ -32,8 +32,18 @@ export function createNodeDetails({mutate,isBusy,status}){
   if(element===editor)element=editor.children[selection.anchorOffset]||editor.firstElementChild||editor;
   const value=getComputedStyle(element).textAlign;return value==='center'?'center':value==='right'||value==='end'?'right':'left';
  }
- function updateAlignment(){const current=alignment(),next={left:'center',center:'right',right:'left'}[current],button=$('notes-align');button.textContent=`Align: ${current[0].toUpperCase()+current.slice(1)}`;button.setAttribute('aria-label',`Alignment: ${current}. Click to align ${next}`);}
- $('notes-align').onclick=()=>{if(loading||closing||clearing)return;editor.focus();const next={left:'Center',center:'Right',right:'Left'}[alignment()];document.execCommand(`justify${next}`,false,null);updateAlignment();schedule();};
+ function noteCell(){const anchor=window.getSelection()?.anchorNode,element=anchor?.nodeType===Node.ELEMENT_NODE?anchor:anchor?.parentElement,cell=element?.closest('td,th');return cell&&editor.contains(cell)?cell:null;}
+ function updateAlignment(){const current=alignment(),next={left:'center',center:'right',right:'left'}[current],button=$('notes-align'),cell=noteCell(),column=cell?String.fromCharCode(65+cell.cellIndex):null;button.textContent=`Align${column?' '+column:''}: ${current[0].toUpperCase()+current.slice(1)}`;button.setAttribute('aria-label',`${column?'Column '+column+' alignment':'Alignment'}: ${current}. Click to align ${next}`);}
+ $('notes-align').onclick=()=>{
+  if(loading||closing||clearing)return;editor.focus();const next={left:'center',center:'right',right:'left'}[alignment()],cell=noteCell();
+  if(cell){
+   const table=cell.closest('table'),column=cell.cellIndex;
+   for(const row of table.rows){const target=row.cells[column];if(!target)continue;target.style.textAlign=next;target.removeAttribute('align');
+    for(const block of target.querySelectorAll('p,div,h2,h3,li,ul,ol,blockquote,pre')){if(block.closest('table')===table){block.style.textAlign=next;block.removeAttribute('align');}}
+   }
+  }else document.execCommand(`justify${next[0].toUpperCase()+next.slice(1)}`,false,null);
+  updateAlignment();schedule();
+ };
  document.addEventListener('selectionchange',()=>{if(notes.open)updateAlignment();});
  $('notes-clear').onclick=async()=>{
   if(loading||closing||clearing||!noteId)return;clearing=true;$('notes-clear').disabled=true;$('notes-close').disabled=true;editor.contentEditable='false';clearTimeout(timer);
