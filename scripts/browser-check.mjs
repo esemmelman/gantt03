@@ -5,6 +5,7 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 let root;
+const siblingIds=[];
 const suffix=Date.now();
 try{
  await page.goto('http://localhost:5173/gantt03/');
@@ -12,7 +13,7 @@ try{
  const initialRootCount=(await api.load()).filter(n=>!n.parent_id).length;
  assert.equal(await page.locator('#expand-toggle').count(),1);
  await page.locator('.node[data-id]').filter({hasText:'Brotherhood'}).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Edit','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Delete']);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Add root',exact:true}).click();
  await page.getByRole('textbox',{name:'New node name'}).fill(`QA ${suffix}`);
@@ -30,8 +31,26 @@ try{
   await page.locator('.draft-row').waitFor({state:'hidden'});
   target=(await api.load()).find(n=>n.title===`QA level ${depth} ${suffix}`);
  }
+ // Siblings insert after the selected branch at the same level, even at level four.
+ const second=(await api.load()).find(n=>n.title===`QA level 2 ${suffix}`);
+ for(const anchor of [target,second,root]){
+  await page.locator(`.node[data-id="${anchor.id}"]`).click({button:'right'});
+  await page.getByRole('menuitem',{name:'Sibling',exact:true}).click();
+  assert.equal(await page.locator('.draft-row').evaluate(row=>row.previousElementSibling.querySelector('.node').dataset.id),target.id);
+  const title=`QA sibling ${anchor.id} ${suffix}`;
+  await page.getByRole('textbox',{name:'New node name'}).fill(title);
+  await page.getByRole('button',{name:'Save new row',exact:true}).click();await page.locator('.draft-row').waitFor({state:'hidden'});
+  const all=await api.load(),sibling=all.find(n=>n.title===title);siblingIds.push(sibling.id);
+  assert.equal(sibling.parent_id,anchor.parent_id);
+  const sameLevel=all.filter(n=>n.parent_id===anchor.parent_id).sort((a,b)=>a.position-b.position);
+  assert.equal(sameLevel[sameLevel.findIndex(n=>n.id===anchor.id)+1].id,sibling.id);
+  await page.reload();await page.getByRole('status').filter({hasText:'Saved'}).waitFor();assert.equal(await page.locator(`.node[data-id="${sibling.id}"]`).count(),1);
+  await api.remove(sibling.id);await page.getByRole('button',{name:'Refresh',exact:true}).click();await page.locator(`.node[data-id="${sibling.id}"]`).waitFor({state:'hidden'});
+ }
+ await page.locator('.cell').first().hover();
+ assert.equal(await page.locator('#day-tooltip').evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)');
  await page.locator(`.node[data-id="${target.id}"]`).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Edit','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Delete']);
  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
  for(const bar of [
   {start_date:'2026-10-27',end_date:'2026-10-29',color:'#ff0000'},
@@ -83,6 +102,7 @@ try{
  assert.deepEqual(errors,[]);
  console.log('Browser and live Supabase checks passed: inline child/parent rows, detail symbols, multiple/overlapping colors, persistence, atomic wrapping, four-level limits, cycle rejection, toggle, cancel.');
 }finally{
+ for(const id of siblingIds)await api.remove(id);
  if(root)await api.remove(root.id);
  await page.goto('http://localhost:5173/gantt03/');await page.getByRole('status').filter({hasText:'Saved'}).waitFor();
  await page.screenshot({path:'preview.png',fullPage:true});

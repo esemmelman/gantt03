@@ -13,7 +13,8 @@ npm run dev
 
 ## Use
 
-- Right-click a node (or Shift+F10): **Add parent, Add child, Edit, Delete**. Level four has only **Edit, Delete**.
+- Right-click a node (or Shift+F10): **Add parent, Add child, Sibling, Edit, Delete**. Level four has **Sibling, Edit, Delete**.
+- **Sibling** inserts a row after the selected node's branch, with the same parent and indentation. It also works for root nodes and level-four nodes.
 - Add parent wraps a node and its branch. A wrapper that would exceed four levels is rejected atomically. The database also rejects cycles and fifth-level inserts.
 - Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; ▤ saves it and opens details; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
 - Use ▤ or double-click a node to edit its name, colored date ranges, text color, notes, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Clicking an unscheduled date appends a one-day range without replacing existing ranges.
