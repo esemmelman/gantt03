@@ -19,7 +19,7 @@ npm run dev
 - Add root, Add child, and Add parent insert an inline name row. Enter or ✓ saves it; × cancels the draft. Add root creates a level-one node. Delete removes the selected node and all descendants after confirmation.
 - Click a node name to edit its name, colored date ranges, text color, or links. Add color range adds another independently colored bar on the same row. Overlaps appear as horizontal stripes. Remove a range with ×. Double-clicking an unscheduled date appends a one-day range without replacing existing ranges.
 - To change a node's level, click its name and choose **Level** and **Parent**, then Save. Level 1 makes it a root. The entire branch moves together; unavailable levels and invalid parents are excluded so no branch exceeds four levels or forms a cycle. Esc can undo a saved move.
-- A right-aligned integer in the node cell shows days until its next scheduled date. If all dates are past, it shows days since the most recent date as a negative integer. Active-today ranges and unscheduled nodes show no count. Counts update when the local date changes.
+- A right-aligned integer in the node cell shows days until its next scheduled date. If all dates are past, it shows days since the most recent date as a negative integer. Active-today ranges show 0; unscheduled nodes show no count. Counts update when the local date changes.
 - **Notes** opens a rich text box with bold, italic, underline, headings, and lists. Notes save automatically after a short pause; closing also saves the latest keystrokes. Existing plain notes are preserved. Formatting is sanitized for display. Save failures stay visible with retry/reload controls.
 - The single **Align** button cycles **Left → Center → Right → Left** for the current paragraph or selected text, and saves the alignment automatically.
 - Click any cell in a Notes grid, then use **Align** to align its entire column. The button shows the active column letter, such as **Align B: Center**. Other columns retain their alignment.
@@ -29,7 +29,7 @@ npm run dev
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
-- The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges.
+- The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges. Adjacent Back and Next buttons shift the start date by 30 days in either direction and return the grid to the beginning of the new range.
 - Rest the mouse near the right edge of the date grid to reveal later dates, or near the left edge beside the frozen node column to return to earlier dates. Scrolling begins after a short pause, speeds up nearer the edge, and stops when the pointer moves away. It pauses for menus and dialogs; color drags continue to auto-scroll at the edges.
 - Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Yellow, Green, Clear**. This changes that date only; other dates on the row are preserved. Existing Blue schedule ranges were converted to Yellow. Date columns are 52px wide.
