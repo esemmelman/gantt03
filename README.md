@@ -21,6 +21,7 @@ npm run dev
 - One link toggles between Expand All and Collapse All. Individual [+] / [-] controls manage branches. Collapse choices persist in this browser.
 - Notes and Links act on the selected node. General Links are shared. Calendar and Calendar Detail show scheduled nodes within the visible date range.
 - Use Refresh to see changes from another session.
+- The default date range extends through **August 31, 2027**, including both calendar views. The Days selector still offers shorter ranges.
 - Hover any date cell to see its project/task name, date as `Oct. 25 Sun`, and an integer day offset (negative for past dates, 0 today). Date headers show the date and offset.
 - Right-click a date cell for **Red, Blue, Green, Clear**. This changes that date only; other dates on the row are preserved.
 - Drag the body of a colored cell to move its colors to another date/row and clear the source. Drag its lower-right **+** cross to paint the rectangle between source and destination, including intermediate dates and visible rows. A striped source carries all its colors. Drop outside the grid or press Escape to cancel. Color moves between rows save together; a conflicting edit in another session is rejected.
