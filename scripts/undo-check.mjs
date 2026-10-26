@@ -20,8 +20,8 @@ try{
  await cell(root,'2026-10-25').hover();assert.equal(await page.locator('.fill-handle:visible').count(),0);
  const dot=await corner(root,'2026-10-25');assert.equal(await dot.isVisible(),true);await page.mouse.down();await page.mouse.up();assert.equal(await page.locator('.fill-handle:visible').count(),0);
  await color(root,'2026-10-25','Red');await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-25'),[]);
- await color(root,'2026-10-25','Blue');await drag(await corner(root,'2026-10-25'),cell(root,'2026-10-28'));assert.deepEqual(colorsOn(await data(root),'2026-10-27'),['#0000ff']);await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-27'),[]);assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#0000ff']);
- await drag(cell(root,'2026-10-25'),cell(other,'2026-10-29'));await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#0000ff']);assert.deepEqual(colorsOn(await data(other),'2026-10-29'),[]);
+ await color(root,'2026-10-25','Yellow');await drag(await corner(root,'2026-10-25'),cell(root,'2026-10-28'));assert.deepEqual(colorsOn(await data(root),'2026-10-27'),['#ffff00']);await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-27'),[]);assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#ffff00']);
+ await drag(cell(root,'2026-10-25'),cell(other,'2026-10-29'));await undo();assert.deepEqual(colorsOn(await data(root),'2026-10-25'),['#ffff00']);assert.deepEqual(colorsOn(await data(other),'2026-10-29'),[]);
  const sibling=await add('Sibling',child,`Undo QA sibling ${suffix}`);await undo();assert.equal(await data(sibling),undefined);
  const wrapper=await add('Add parent',child,`Undo QA wrapper ${suffix}`);await undo();assert.equal(await data(wrapper),undefined);assert.equal((await data(child)).parent_id,root.id);assert.equal((await data(leaf)).parent_id,child.id);
  await name(child).dragTo(name(other));await saved();assert.equal((await data(child)).parent_id,other.id);await undo();assert.equal((await data(child)).parent_id,root.id);

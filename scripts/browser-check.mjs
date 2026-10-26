@@ -13,7 +13,7 @@ try{
  const initialRootCount=(await api.load()).filter(n=>!n.parent_id).length;
  assert.equal(await page.locator('#expand-toggle').count(),1);
  await page.locator('.node[data-id]').filter({hasText:'Brotherhood'}).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Notes','Comments','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Add parent','Add child','Sibling','Edit','Notes','Comments','Archive','Delete']);
  await page.keyboard.press('Escape');
  await page.getByRole('button',{name:'Add root',exact:true}).click();
  await page.getByRole('textbox',{name:'New node name'}).fill(`QA ${suffix}`);
@@ -50,11 +50,11 @@ try{
  await page.locator('.cell').first().hover();
  assert.equal(await page.locator('#day-tooltip').evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)');
  await page.locator(`.node[data-id="${target.id}"]`).click({button:'right'});
- assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Notes','Comments','Delete']);
+ assert.deepEqual(await page.locator('#menu button').allTextContents(),['Sibling','Edit','Notes','Comments','Archive','Delete']);
  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
  for(const bar of [
   {start_date:'2026-10-27',end_date:'2026-10-29',color:'#ff0000'},
-  {start_date:'2026-10-28',end_date:'2026-10-30',color:'#0000ff'}
+  {start_date:'2026-10-28',end_date:'2026-10-30',color:'#ffff00'}
  ]){
   await page.getByRole('button',{name:'Add color range'}).click();
   const row=page.locator('.bar-range').last();
@@ -69,7 +69,7 @@ try{
  const overlap=coloredRow.locator('.cell').nth(4);
  assert.match(await overlap.evaluate(n=>n.style.getPropertyValue('--bar')),/linear-gradient/);
  assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/255, 0, 0/);
- assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/0, 0, 255/);
+ assert.match(await overlap.evaluate(n=>getComputedStyle(n).backgroundImage),/255, 255, 0/);
  // Clicking an unscheduled day appends a range without erasing prior colors.
  await coloredRow.locator('.cell').nth(8).dblclick();
  assert.equal(await page.locator('.bar-range').count(),3);

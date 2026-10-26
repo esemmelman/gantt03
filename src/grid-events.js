@@ -2,7 +2,7 @@ import {iso} from './model.js';
 import {cellTooltip,colorsOn,colorFill,rangesOf,paintRange,nodeDrop} from './interactions.js';
 
 export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,moveNode,selectCell,status,undo}){
- const chart=document.querySelector('#chart'),menu=document.querySelector('#menu'),tip=document.querySelector('#day-tooltip'),rootDrop=document.querySelector('#root-drop');
+ const chart=document.querySelector('#chart'),menu=document.querySelector('#menu'),tip=document.querySelector('#day-tooltip');
  let gesture=null,nodeDrag=null,suppressClick=false,scrollFrame=0;
  const node=id=>getNodes().find(n=>n.id===id);
  const dayCell=target=>target?.closest?.('.cell[data-day]');
@@ -26,7 +26,7 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  chart.addEventListener('pointermove',tooltip);chart.addEventListener('pointerover',tooltip);chart.addEventListener('pointerleave',hideTip);chart.addEventListener('scroll',hideTip);
  function showMenu(cell,e){
   if(isBusy())return;e.preventDefault();hideTip();selectCell(cell.dataset.nodeId,cell.dataset.day);menu.replaceChildren();
-  for(const [label,color] of [['Red','#ff0000'],['Blue','#0000ff'],['Green','#008000'],['Clear',null]]){
+  for(const [label,color] of [['Red','#ff0000'],['Yellow','#ffff00'],['Green','#008000'],['Clear',null]]){
    const button=document.createElement('button');button.textContent=label;button.setAttribute('role','menuitem');button.style.borderLeft=`6px solid ${color||'#ddd'}`;
    button.onclick=async()=>{menu.hidden=true;const n=node(cell.dataset.nodeId);if(n)await persist([{id:n.id,expected_bars:rangesOf(n),bars:paintRange(rangesOf(n),cell.dataset.day,cell.dataset.day,color?[color]:[])}]);};menu.append(button);
   }
@@ -94,19 +94,19 @@ export function installGridInteractions({getNodes,getVisible,isBusy,saveColors,m
  window.addEventListener('blur',()=>{if(gesture)finish({pointerId:gesture.pointerId},true);});
 
  // Native node dragging carries the entire branch with it.
- function resetDrop(){chart.querySelectorAll('.drop-before,.drop-after,.drop-inside,.drop-invalid').forEach(n=>n.classList.remove('drop-before','drop-after','drop-inside','drop-invalid'));rootDrop.classList.remove('drop-inside','drop-invalid');}
+ function resetDrop(){chart.querySelectorAll('.drop-before,.drop-after,.drop-inside,.drop-invalid').forEach(n=>n.classList.remove('drop-before','drop-after','drop-inside','drop-invalid'));}
  function placement(e,target){const r=target.getBoundingClientRect(),fraction=(e.clientY-r.top)/r.height;return fraction<.28?'before':fraction>.72?'after':'inside';}
  chart.addEventListener('dragstart',e=>{
   const td=e.target.closest('.node[data-id]');if(!td||e.target.closest('button,input')||isBusy()||document.querySelector('.draft-row')){e.preventDefault();return;}
   nodeDrag=td.dataset.id;hideTip();e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',nodeDrag);td.classList.add('drag-source');
  });
- function dragOver(e){if(!nodeDrag)return;const target=e.target.closest('.node[data-id]'),isRoot=e.currentTarget===rootDrop;if(!target&&!isRoot)return;
-  e.preventDefault();resetDrop();const mark=isRoot?rootDrop:target,place=isRoot?'inside':placement(e,target);
-  try{nodeDrop(getNodes(),node(nodeDrag),target?node(target.dataset.id):null,place);mark.classList.add('drop-'+place);e.dataTransfer.dropEffect='move';status(isRoot?'Move to root level':`${place==='inside'?'Move under':place==='before'?'Move before':'Move after'} ${node(target.dataset.id).title}`);}catch(err){mark.classList.add('drop-invalid');e.dataTransfer.dropEffect='none';status(err.message,true);}
+ function dragOver(e){if(!nodeDrag)return;const target=e.target.closest('.node[data-id]');if(!target)return;
+  e.preventDefault();resetDrop();const place=placement(e,target);
+  try{nodeDrop(getNodes(),node(nodeDrag),node(target.dataset.id),place);target.classList.add('drop-'+place);e.dataTransfer.dropEffect='move';status(`${place==='inside'?'Move under':place==='before'?'Move before':'Move after'} ${node(target.dataset.id).title}`);}catch(err){target.classList.add('drop-invalid');e.dataTransfer.dropEffect='none';status(err.message,true);}
  }
- async function drop(e){if(!nodeDrag)return;const target=e.target.closest('.node[data-id]'),isRoot=e.currentTarget===rootDrop;if(!target&&!isRoot)return;e.preventDefault();const id=nodeDrag;nodeDrag=null;resetDrop();chart.querySelectorAll('.drag-source').forEach(n=>n.classList.remove('drag-source'));
-  try{const values=nodeDrop(getNodes(),node(id),target?node(target.dataset.id):null,isRoot?'inside':placement(e,target));await moveNode(id,values);}catch(err){status(err.message,true);}
+ async function drop(e){if(!nodeDrag)return;const target=e.target.closest('.node[data-id]');if(!target)return;e.preventDefault();const id=nodeDrag;nodeDrag=null;resetDrop();chart.querySelectorAll('.drag-source').forEach(n=>n.classList.remove('drag-source'));
+  try{const values=nodeDrop(getNodes(),node(id),node(target.dataset.id),placement(e,target));await moveNode(id,values);}catch(err){status(err.message,true);}
  }
- chart.addEventListener('dragover',dragOver);chart.addEventListener('drop',drop);rootDrop.addEventListener('dragover',dragOver);rootDrop.addEventListener('drop',drop);
+ chart.addEventListener('dragover',dragOver);chart.addEventListener('drop',drop);
  document.addEventListener('dragend',()=>{nodeDrag=null;resetDrop();chart.querySelectorAll('.drag-source').forEach(n=>n.classList.remove('drag-source'));});
 }
