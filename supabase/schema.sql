@@ -1,4 +1,4 @@
--- Isolated, login-free Gantt chart. Intentionally public read/write.
+-- Isolated organizer-only Gantt chart. Apply the organizer-access migration after setup.
 create table public.gantt03_nodes (
  id uuid primary key default gen_random_uuid(),
  parent_id uuid references public.gantt03_nodes(id) on delete cascade,
@@ -12,8 +12,8 @@ create table public.gantt03_nodes (
  check (end_date is null or end_date >= start_date)
 );
 create index gantt03_parent_idx on public.gantt03_nodes(parent_id);
-alter table public.gantt03_nodes disable row level security;
-grant select, insert, update, delete on public.gantt03_nodes to anon, authenticated;
+alter table public.gantt03_nodes enable row level security;
+grant select, insert, update, delete on public.gantt03_nodes to service_role;
 
 create function public.gantt03_check_tree() returns trigger language plpgsql set search_path = public as $$
 declare depth integer; height integer; cycle_found boolean;
@@ -44,11 +44,12 @@ begin
  update gantt03_nodes set parent_id=new_id,position=0 where id=target_id;
  return new_id;
 end $$;
-grant execute on function public.gantt03_add_parent(uuid,text) to anon, authenticated;
+revoke all on function public.gantt03_add_parent(uuid,text) from public, anon, authenticated;
+grant execute on function public.gantt03_add_parent(uuid,text) to service_role;
 
 create table public.gantt03_settings (id integer primary key check(id=1), general_links text not null default '');
-alter table public.gantt03_settings disable row level security;
-grant select,update on public.gantt03_settings to anon,authenticated;
+alter table public.gantt03_settings enable row level security;
+grant select,update on public.gantt03_settings to service_role;
 insert into public.gantt03_settings(id) values(1);
 
 insert into public.gantt03_nodes(id,parent_id,title,position,text_color,start_date,end_date) values

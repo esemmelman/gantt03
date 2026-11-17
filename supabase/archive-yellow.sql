@@ -54,4 +54,5 @@ begin
  delete from gantt03_nodes n where exists(select 1 from jsonb_array_elements(changes) c where c->>'id'=n.id::text and c->'before'='null'::jsonb);
  if settings_before is not null then update gantt03_settings set general_links=settings_before where id=1; end if;
 end $$;
-grant execute on function public.gantt03_undo_action(jsonb,text,text) to anon,authenticated;
+revoke all on function public.gantt03_undo_action(jsonb,text,text) from public, anon, authenticated;
+grant execute on function public.gantt03_undo_action(jsonb,text,text) to service_role;

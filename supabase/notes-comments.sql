@@ -11,7 +11,8 @@ begin
  if saved is null then raise exception 'Notes changed in another session or this node was deleted. Reopen Notes to load the latest version.'; end if;
  return saved;
 end $$;
-grant execute on function public.gantt03_save_notes(uuid,text,text,text) to anon,authenticated;
+revoke all on function public.gantt03_save_notes(uuid,text,text,text) from public, anon, authenticated;
+grant execute on function public.gantt03_save_notes(uuid,text,text,text) to service_role;
 
 create function public.gantt03_add_comment(target_id uuid, comment_id uuid, comment_body text)
 returns jsonb language plpgsql set search_path=public as $$
@@ -26,7 +27,8 @@ begin
  if saved is null then raise exception 'This node was deleted.'; end if;
  return saved;
 end $$;
-grant execute on function public.gantt03_add_comment(uuid,uuid,text) to anon,authenticated;
+revoke all on function public.gantt03_add_comment(uuid,uuid,text) from public, anon, authenticated;
+grant execute on function public.gantt03_add_comment(uuid,uuid,text) to service_role;
 
 -- Restore one locally recorded action without overwriting newer shared changes.
 create or replace function public.gantt03_undo_action(changes jsonb, settings_before text default null, settings_after text default null)
@@ -73,4 +75,5 @@ begin
  delete from gantt03_nodes n where exists(select 1 from jsonb_array_elements(changes) c where c->>'id'=n.id::text and c->'before'='null'::jsonb);
  if settings_before is not null then update gantt03_settings set general_links=settings_before where id=1; end if;
 end $$;
-grant execute on function public.gantt03_undo_action(jsonb,text,text) to anon,authenticated;
+revoke all on function public.gantt03_undo_action(jsonb,text,text) from public, anon, authenticated;
+grant execute on function public.gantt03_undo_action(jsonb,text,text) to service_role;

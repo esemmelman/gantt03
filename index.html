@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gantt chart</title></head><body>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gantt chart</title></head><body data-organizer-locked="true">
+<dialog id="organizer-login" aria-labelledby="organizer-title"><form id="organizer-form"><h2 id="organizer-title">Gantt03 organizer access</h2><p>Sign in to view and edit the chart. This browser stays signed in for 90 days.</p><label>Organizer access code<input id="organizer-passcode" type="password" autocomplete="current-password" required></label><p id="organizer-error" role="status" aria-live="polite"></p><div class="actions"><button id="organizer-submit" type="submit">Sign in</button></div></form></dialog>
 <nav aria-label="Chart controls">
  <button id="expand-toggle">Collapse All</button><button id="notes">Notes</button><button id="links">Links</button><button id="general">General Links</button><button id="calendar">Calendar</button><button id="detail">Calendar Detail</button>
- <span class="spacer"></span><button id="add">Add root</button><button id="refresh">Refresh</button>
+ <span class="spacer"></span><button id="add">Add root</button><button id="refresh">Refresh</button><button id="organizer-signout">Sign out</button>
 </nav>
 <div class="range"><label>Start <input type="date" id="range-start"></label><button id="today">Today</button><button id="previous" aria-label="Go back 30 days">‹ Back</button><button id="next" aria-label="Go forward 30 days">Next ›</button><label>Days <select id="days"><option value="through-aug-2027" selected>Through Aug. 2027</option><option>30</option><option>60</option><option>90</option><option>180</option><option>365</option></select></label><select id="task-level" aria-label="Show tasks through level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4" selected>Level 4</option></select><button id="archive">Archive</button><span id="status" role="status">Connecting…</span></div>
 <main id="chart" tabindex="0" aria-label="Gantt chart"></main>

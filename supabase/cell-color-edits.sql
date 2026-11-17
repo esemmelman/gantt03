@@ -23,4 +23,5 @@ begin
   where id=(change->>'id')::uuid;
  end loop;
 end $$;
-grant execute on function public.gantt03_update_colors(jsonb) to anon,authenticated;
+revoke all on function public.gantt03_update_colors(jsonb) from public, anon, authenticated;
+grant execute on function public.gantt03_update_colors(jsonb) to service_role;

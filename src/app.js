@@ -1,11 +1,13 @@
 import './style.css';
 import * as api from './api.js';
+import {signOut} from './organizer-auth.js';
 import {children,level,height,visible,projectRoot,projectVisible,archivedRoots,actions,iso,addDays} from './model.js';
 import {nodeDrop,dayOffset,cellTooltip,nodeDayOffset,rangesOf as barRanges,colorsOn as barColors,colorFill} from './interactions.js';
 import {installGridInteractions} from './grid-events.js';
 import {actionDiff} from './history.js';
 import {createNodeDetails} from './node-details.js';
 const $=s=>document.querySelector(s), el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
+$('#organizer-signout').onclick=signOut;
 let nodes=[],selected=null,collapsed=new Set(JSON.parse(localStorage.getItem('gantt03-collapsed')||'[]')),busy=false,editing=null,draft=null,activeCell=null,focusedRoot=null,focusTimer=null;
 const undoStack=[];let undoRequested=false,undoing=false;
 const start=$('#range-start');start.value=iso(new Date());

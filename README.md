@@ -2,6 +2,16 @@
 
 A compact four-level Gantt chart based on the supplied reference. Data is saved in the existing **bnaimitzvah** Supabase project, in isolated `gantt03_nodes` and `gantt03_settings` tables.
 
+## Organizer access
+
+Open [Gantt03](https://esemmelman.github.io/gantt03/) and enter the organizer passcode. Successful sign-in is remembered in this browser for 90 days. **Sign out** removes that browser's session. Clearing site data or using another browser requires signing in again. The passcode is never stored in the browser; only a signed, expiring Gantt03 session token is saved. Gantt03 sessions are separate from the serenade program's sessions.
+
+All reads and writes, including notes, comments, general links, colors, and undo, use `gantt03-organizer`. That Edge Function authenticates the organizer before accessing an explicit list of Gantt03 table operations and RPC functions. It never forwards arbitrary table names, filters, function names, or external URLs. Its server-side service credential is never exposed in the browser. Database RLS is enabled and anonymous/authenticated direct table privileges and function execution are revoked. These tables intentionally have no public RLS policies; organizer access is mediated by the protected server endpoint.
+
+The deployment substitutes the private passcode verifier for `__DEPLOYMENT_ACCESS_HASH__` in the function's deployment payload. Never commit the passcode or active verifier; never deploy the placeholder unchanged. Replacing the verifier revokes existing Gantt03 sessions.
+
+For a fresh database, apply the existing setup SQL, then `supabase/migrations/20261117073819_protect_gantt03_organizer_access.sql` to finalize table and function permissions. The function uses its own passcode/session authentication, so Supabase JWT verification is disabled for this endpoint. Browser CORS is restricted to the production GitHub Pages origin; use mocked requests for local UI tests.
+
 ## Run
 
 ```sh

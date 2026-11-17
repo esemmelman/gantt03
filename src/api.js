@@ -1,6 +1,4 @@
-const base='https://fgomaujsdblpzxhnnqrg.supabase.co/rest/v1/';
-// Publishable browser key; this app intentionally has public read/write access.
-const key='sb_publishable_JOUqLZDnfGu_yCa6k6FVDQ_AYwpr72i';
+import {organizerRequest} from './organizer-auth.js';
 let recording=null;
 export function beginRecording(){recording={ids:[],deleted:[],settings:false};}
 export function endRecording(){const result=recording;recording=null;return result;}
@@ -12,7 +10,7 @@ function track(path,method,body,data){
  if(path==='rpc/gantt03_save_notes'||path==='rpc/gantt03_add_comment')recording.ids.push(body.target_id);
  if(path.startsWith('gantt03_settings'))recording.settings=true;
 }
-export async function request(path,method='GET',body){const res=await fetch(base+path,{method,headers:{apikey:key,'Content-Type':'application/json',Prefer:'return=representation'},body:body===undefined?undefined:JSON.stringify(body)});const data=await res.json().catch(()=>null);if(!res.ok)throw Error(data?.message||`Request failed (${res.status})`);track(path,method,body,data);return data;}
+export async function request(path,method='GET',body){const data=await organizerRequest(path,method,body);track(path,method,body,data);return data;}
 export async function load(){return request('gantt03_nodes?select=*&order=position.asc,id.asc&limit=10000');}
 export async function create(body){return request('gantt03_nodes','POST',body);}
 export async function update(id,body){const rows=await request(`gantt03_nodes?id=eq.${id}`,'PATCH',body);if(!rows.length)throw Error('This node was deleted. Refresh the chart.');return rows;}
