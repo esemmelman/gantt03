@@ -10,7 +10,7 @@ All reads and writes, including notes, comments, general links, colors, and undo
 
 The deployment substitutes the private passcode verifier for `__DEPLOYMENT_ACCESS_HASH__` in the function's deployment payload. Never commit the passcode or active verifier; never deploy the placeholder unchanged. Replacing the verifier revokes existing Gantt03 sessions.
 
-For a fresh database, apply the existing setup SQL, then `supabase/migrations/20261117073819_protect_gantt03_organizer_access.sql` to finalize table and function permissions. The function uses its own passcode/session authentication, so Supabase JWT verification is disabled for this endpoint. Browser CORS is restricted to the production GitHub Pages origin; use mocked requests for local UI tests.
+For a fresh database, apply the existing setup SQL, then `supabase/migrations/20261117074443_protect_gantt03_organizer_access.sql` to finalize table and function permissions. The function uses its own passcode/session authentication, so Supabase JWT verification is disabled for this endpoint. Browser CORS is restricted to the production GitHub Pages origin; use mocked requests for local UI tests.
 
 ## Run
 
@@ -77,4 +77,5 @@ The browser checks create and clean up their own temporary branches in Supabase.
 ## Hosting
 
 GitHub Pages deploys automatically from main using .github/workflows/pages.yml. The Vite base path is /gantt03/.
+
 
